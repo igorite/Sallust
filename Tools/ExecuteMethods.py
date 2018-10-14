@@ -1,6 +1,6 @@
+import datetime
 import inspect
 import threading
-import datetime
 
 from lxml import etree as ET
 
@@ -166,14 +166,11 @@ class Procesar(threading.Thread):
         that later is writen in a XML file"""
         xmlstr = ET.tostring(self.xml, encoding='UTF-8', xml_declaration=True, pretty_print=True)
         xmlstr.replace(b'\n', b'\r\n')
-        now = str(datetime.date.today())
         xml_name = "test_history/"+self.get_time() + ".xml"
         with open(xml_name, "wb") as f:
             f.write(xmlstr)
             f.close()
         self.queue.put(["xml_name", xml_name])
-
-
 
     def get_modules_classes(self):
         """return the 'modules_classes'"""

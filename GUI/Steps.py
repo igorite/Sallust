@@ -56,6 +56,7 @@ class Steps(tk.Frame):
         scrollb = tk.Scrollbar(self.text, command=self.text.yview)
         scrollb.pack(expand=1, anchor="e", fill=tk.Y)
         self.text['yscrollcommand'] = scrollb.set
+
     #
     # WRITE FUNCTIONS
     #
@@ -69,7 +70,7 @@ class Steps(tk.Frame):
         self.text.image_create(self.test_name_index, image=self.controller.image_run_test,
                                pady=0)
         self.text.configure(state="normal")
-        self.text.insert("end"," " +self.test_name_label + "\n", "header")
+        self.text.insert("end", " " + self.test_name_label + "\n", "header")
         self.text.configure(state="disabled")
         self.text.see("end")
 
@@ -126,11 +127,12 @@ class Steps(tk.Frame):
         self.controller.data_tests.append([self.test_steps_passed, self.test_steps_failed])
         self.test_steps_passed = 0
         self.test_steps_failed = 0
+
     #
     # UTILITY FUNCTIONS
     #
 
-    def _toggle_visibility(self, event = None):
+    def _toggle_visibility(self, event=None):
         block_start, block_end = self._get_block("insert")
         next_hidden = self.text.tag_nextrange("hidden", block_start, block_end)
         if next_hidden:
