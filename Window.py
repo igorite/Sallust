@@ -10,7 +10,7 @@ from tkinter.font import Font
 
 from PIL import Image, ImageTk
 
-from GUI import Graphics, PageXML, PopUpWindow, Steps
+from GUI import Graphics, PageXML, Steps, PopUpWindow
 from scripts import Procesar
 
 
@@ -35,17 +35,19 @@ class Window(tk.Tk):
     image_skip = None
     image_ok_test = None
     image_fail_test = None
+    image_run_test = None
     image_run = None
     image_running = None
     image_xml = None
     icon = None
     steps_icon = None
     graphs_icon = None
+    current_xml = None
     data_tests = []
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-
+        self.iconify()
         self.test_passed = 0
         self.test_failed = 0
         self.test_not_run = 1
@@ -71,6 +73,8 @@ class Window(tk.Tk):
         self._create_menu()
         self._create_container()
         self.button_run.configure(state="normal")
+        self.deiconify()
+        self.geometry("700x%d+%d+0" % (self.screen_height, self.winfo_screenwidth() - 710))
 
     def show_frame(self, page_name):
         """Show a frame for the given page name"""
@@ -186,7 +190,7 @@ class Window(tk.Tk):
             if self.thread_running is False:
                 self.thread_running = True
                 self.get_frame("Steps").text.delete("1.0", "end")
-                self.button_run.configure(text="Running Tests", image=self.image_running, bg="#4891b4")
+                self.button_run.configure(text="Running Tests", image=self.image_running, bg="#0b5cb5")
                 self.thread = Procesar.Procesar(self.get_frame("Steps"), self.queue, self.run_module)
                 self.thread.start()
                 self.after(0, self.update_run)
@@ -203,6 +207,7 @@ class Window(tk.Tk):
         self.image_skip = ImageTk.PhotoImage(Image.open("img/skip.png"))
         self.image_ok_test = ImageTk.PhotoImage(Image.open("img/ok_test.png"))
         self.image_fail_test = ImageTk.PhotoImage(Image.open("img/fail_test.png"))
+        self.image_run_test = ImageTk.PhotoImage(Image.open("img/run_test.png"))
         self.image_icon = ImageTk.PhotoImage(Image.open("img/Apyno_logo_small.png"))
         self.steps_icon = ImageTk.PhotoImage(Image.open("img/steps_icon.png"))
         self.graphs_icon = ImageTk.PhotoImage(Image.open("img/graphs_icon.png"))
@@ -236,6 +241,8 @@ class Window(tk.Tk):
                 steps.step_pass(msg[1])
             if msg[0] == "fail":
                 steps.step_fail(msg[1])
+            if msg[0] == "xml_name":
+                self.current_xml = msg[1]
 
         except queue.Empty:
             self.after(0, self.update_run)

@@ -56,7 +56,6 @@ class Steps(tk.Frame):
         scrollb = tk.Scrollbar(self.text, command=self.text.yview)
         scrollb.pack(expand=1, anchor="e", fill=tk.Y)
         self.text['yscrollcommand'] = scrollb.set
-        self.text.index("end")
     #
     # WRITE FUNCTIONS
     #
@@ -67,9 +66,10 @@ class Steps(tk.Frame):
         self.time_start = datetime.now()
         self.test_name_label = name
         self.test_name_index = self.text.index("end") + "-1 lines"
-        self.text.mark_set(name, "end")
+        self.text.image_create(self.test_name_index, image=self.controller.image_run_test,
+                               pady=0)
         self.text.configure(state="normal")
-        self.text.insert("end", self.test_name_label + "\n", "header")
+        self.text.insert("end"," " +self.test_name_label + "\n", "header")
         self.text.configure(state="disabled")
         self.text.see("end")
 
@@ -108,14 +108,16 @@ class Steps(tk.Frame):
     def test_finish(self):
         if self.test_status:
             self.text.configure(state="normal")
-            self.text.insert(self.test_name_index, "  ", "header")
+            self.text.delete(str(self.test_name_index), str(self.test_name_index) + "+1 chars")
+            self.text.insert(self.test_name_index, "", "header")
             self.text.image_create(self.test_name_index, image=self.controller.image_ok_test,
                                    pady=0)
             self.text.configure(state="disabled")
             self.controller.test_passed += 1
         else:
             self.text.configure(state="normal")
-            self.text.insert(self.test_name_index, "  ", "header")
+            self.text.delete(str(self.test_name_index), str(self.test_name_index) + "+1 chars")
+            self.text.insert(self.test_name_index, "", "header")
             self.text.image_create(self.test_name_index, image=self.controller.image_fail_test,
                                    pady=0)
             self.text.configure(state="disabled")

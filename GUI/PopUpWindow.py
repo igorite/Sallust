@@ -88,5 +88,6 @@ class LoadModuleWindow(tk.Toplevel):
             self.path_string = self.entry.get()
             self.controller.set_module(self.path_string)
             self.destroy()
-        except Exception:
+        except Exception as e:
             self.error_label.configure(text="Error while loading module. Try again")
+            print(str(e))

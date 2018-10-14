@@ -23,6 +23,6 @@ class PageXML(tk.Frame):
 
     def create_XML(self):
         self.text.delete("1.0", "end")
-        with open("output.xml", "r") as f:
+        with open(self.controller.current_xml, "r") as f:
             strxml = f.read()
             self.text.insert("end", strxml)

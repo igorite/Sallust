@@ -1,5 +1,6 @@
 import inspect
 import threading
+import datetime
 
 from lxml import etree as ET
 
@@ -107,6 +108,7 @@ class Procesar(threading.Thread):
                     self._add_step_XML(parent_XML, "pass", step, description)
                     step += 1
             self.queue.put(["end", cls.get_name()])
+            self._save_XML()
 
     def _sort_run_methods(self):
         """sort the run methods by its line position on the module"""
@@ -143,7 +145,11 @@ class Procesar(threading.Thread):
                 step += 1
         self.queue.put(["end", test_case])
         self.queue.put(["finish_thread", 0])
-        self._save_XML()
+        try:
+            self._save_XML()
+        except Exception:
+            pass
+        self.queue.put(["finish_thread", 0])
 
     def _add_step_XML(self, parent, status, step, description):
         element = ET.SubElement(parent, "step", {"status": status, "step": str(step)})
@@ -160,9 +166,14 @@ class Procesar(threading.Thread):
         that later is writen in a XML file"""
         xmlstr = ET.tostring(self.xml, encoding='UTF-8', xml_declaration=True, pretty_print=True)
         xmlstr.replace(b'\n', b'\r\n')
-        with open("output.xml", "wb") as f:
+        now = str(datetime.date.today())
+        xml_name = "test_history/"+self.get_time() + ".xml"
+        with open(xml_name, "wb") as f:
             f.write(xmlstr)
             f.close()
+        self.queue.put(["xml_name", xml_name])
+
+
 
     def get_modules_classes(self):
         """return the 'modules_classes'"""
@@ -171,3 +182,7 @@ class Procesar(threading.Thread):
     def get_run_methods(self):
         """return the 'run_methods'"""
         return self._run_methods
+
+    def get_time(self):
+        time = str(datetime.datetime.now())
+        return time[:10] + "_" + time[11:13] + "-" + time[14:16]
