@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<test_run>
+  <testcase name="Specialisterne">
+    <step status="pass" step="1">Go to google google</step>
+    <step status="pass" step="2">Search the word 'Specialisterne'</step>
+    <step status="pass" step="3">Go to first link in the results</step>
+    <step status="pass" step="4">Close the browser</step>
+    <step status="fail" step="5">There is no description of this step</step>
+  </testcase>
+  <testcase name="JustPrint">
+    <step status="pass" step="6">There is no description of this step</step>
+  </testcase>
+  <testcase name="Otra">
+    <step status="fail" step="7">There is no description of this step</step>
+    <step status="pass" step="8">There is no description of this step</step>
+  </testcase>
+</test_run>
