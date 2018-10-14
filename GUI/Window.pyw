@@ -10,8 +10,8 @@ from tkinter.font import Font
 
 from PIL import Image, ImageTk
 
-from GUI import Graphics, PageXML, Steps, PopUpWindow
-from scripts import Procesar
+from GUI import PageXML, Graphics, PopUpWindow, Steps
+from Tools import ExecuteMethods
 
 
 class Window(tk.Tk):
@@ -138,7 +138,7 @@ class Window(tk.Tk):
 
     def _create_window(self):
         self.title(self.window_title)
-        self.wm_iconbitmap("img/icon.ico")
+        self.wm_iconbitmap("GUI/img/icon.ico")
         # self.attributes('-topmost', True)
         self.screen_height = self.winfo_screenheight() * 0.96
         self.geometry("700x%d+%d+0" % (self.screen_height, self.winfo_screenwidth()-710))
@@ -191,7 +191,7 @@ class Window(tk.Tk):
                 self.thread_running = True
                 self.get_frame("Steps").text.delete("1.0", "end")
                 self.button_run.configure(text="Running Tests", image=self.image_running, bg="#0b5cb5")
-                self.thread = Procesar.Procesar(self.get_frame("Steps"), self.queue, self.run_module)
+                self.thread = ExecuteMethods.Procesar(self.get_frame("Steps"), self.queue, self.run_module)
                 self.thread.start()
                 self.after(0, self.update_run)
             else:
@@ -202,18 +202,18 @@ class Window(tk.Tk):
 
     def load_images(self):
         """Search and load the images needed for the GUI"""
-        self.image_fail = ImageTk.PhotoImage(Image.open("img/fail.png"))
-        self.image_ok = ImageTk.PhotoImage(Image.open("img/ok.png"))
-        self.image_skip = ImageTk.PhotoImage(Image.open("img/skip.png"))
-        self.image_ok_test = ImageTk.PhotoImage(Image.open("img/ok_test.png"))
-        self.image_fail_test = ImageTk.PhotoImage(Image.open("img/fail_test.png"))
-        self.image_run_test = ImageTk.PhotoImage(Image.open("img/run_test.png"))
-        self.image_icon = ImageTk.PhotoImage(Image.open("img/Apyno_logo_small.png"))
-        self.steps_icon = ImageTk.PhotoImage(Image.open("img/steps_icon.png"))
-        self.graphs_icon = ImageTk.PhotoImage(Image.open("img/graphs_icon.png"))
-        self.image_run = ImageTk.PhotoImage(Image.open("img/play_icon.png"))
-        self.image_running = ImageTk.PhotoImage(Image.open("img/running.png"))
-        self.image_xml = ImageTk.PhotoImage(Image.open("img/xml_icon.png"))
+        self.image_fail = ImageTk.PhotoImage(Image.open("GUI/img/fail.png"))
+        self.image_ok = ImageTk.PhotoImage(Image.open("GUI/img/ok.png"))
+        self.image_skip = ImageTk.PhotoImage(Image.open("GUI/img/skip.png"))
+        self.image_ok_test = ImageTk.PhotoImage(Image.open("GUI/img/ok_test.png"))
+        self.image_fail_test = ImageTk.PhotoImage(Image.open("GUI/img/fail_test.png"))
+        self.image_run_test = ImageTk.PhotoImage(Image.open("GUI/img/run_test.png"))
+        self.image_icon = ImageTk.PhotoImage(Image.open("GUI/img/Apyno_logo_small.png"))
+        self.steps_icon = ImageTk.PhotoImage(Image.open("GUI/img/steps_icon.png"))
+        self.graphs_icon = ImageTk.PhotoImage(Image.open("GUI/img/graphs_icon.png"))
+        self.image_run = ImageTk.PhotoImage(Image.open("GUI/img/play_icon.png"))
+        self.image_running = ImageTk.PhotoImage(Image.open("GUI/img/running.png"))
+        self.image_xml = ImageTk.PhotoImage(Image.open("GUI/img/xml_icon.png"))
 
     def get_frame(self, frame_name):
         return self.frames[frame_name]
