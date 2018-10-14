@@ -4,17 +4,17 @@ from selenium.webdriver.common.keys import Keys
 import TestCase as Tc
 
 
-class Login(Tc.TestCase):
+class FirstResult(Tc.TestCase):
     def __init__(self):
         super().__init__("Specialisterne")
         self.driver = webdriver.Chrome()
 
     def test_google(self):
-        """Ir a google"""
+        """Go to google google"""
         self.driver.get("http://www.google.es")
 
     def test_word(self):
-        """Buscar palabra specialisterne"""
+        """Search the word 'Specialisterne'"""
         search_box = self.driver.find_element_by_id("lst-ib")
         search_box.send_keys("Specialisterne")
         search_box.send_keys(Keys.RETURN)
@@ -23,29 +23,31 @@ class Login(Tc.TestCase):
         print("ESTE NO SE IMPRIME")
 
     def test_ir_a_la_web(self):
-        """ir al link del primer resultado"""
-        first_link = self.driver.find_element_by_xpath('//*[@id="rso"]/div/div/div[1]/div/div/div[1]/a/h3')
-        first_link.click()
+        """Go to first link in the results"""
+        first_link = self.driver.find_element_by_xpath('//*[@id="rso"]/div[1]/div/div/div/div/div[1]/a')
+        link_href = first_link.get_attribute("href")
+        self.driver.get(link_href)
         print("HOLA")
 
     def test_finish(self):
+        """Close the browser"""
         self.driver.quit()
 
     def test_google2(self):
-        self.driver.get("www")
+        self.driver.get("http://www.google.es")
 
 
-class Tralala(Tc.TestCase):
+class JustPrint(Tc.TestCase):
     def __init__(self):
-        Tc.TestCase.__init__(self, "Tralala", "Probando otras cosas")
+        Tc.TestCase.__init__(self, "JustPrint")
 
     def test_pagina(self):
-        print("TEST PAGINA EJECUTADO")
+        print("This test went OK")
 
 
 class Otra(Tc.TestCase):
     def __init__(self):
-        Tc.TestCase.__init__(self, "Otra", "Probando otras cosas")
+        Tc.TestCase.__init__(self, "Otra")
 
     def test_otra(self):
         a = "12" + 12
