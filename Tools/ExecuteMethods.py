@@ -51,7 +51,10 @@ class Procesar(threading.Thread):
             if inspect.isclass(obj):
                 # check the class is a subclass of 'TestCase'
                 if issubclass(obj, TestCase.TestCase):
-                    self._modules_classes.append(obj)
+
+                    position = inspect.findsource(obj)[1]
+                    self._modules_classes.append([obj, position])
+        self._modules_classes.sort(key=lambda x: x[1])
 
     def _process_classes_methods(self, classes_of_module):
         """"Gets all methods of the given classes that it's name start with the words 'test' and store them in a list.
@@ -80,16 +83,19 @@ class Procesar(threading.Thread):
 
     def new_execute_methods(self):
         step = 1
-
         for i in range(len(self._modules_classes)):
             try:
-                cls = self._modules_classes[i]()
+                cls = self._modules_classes[i][0]()
             except Exception:
                 continue
             else:
                 pass
-            self.queue.put(["start", cls.get_name()])
-            parent_XML = self._add_test_XML(cls.get_name())
+            step = 1
+            cls_name = cls.get_name()
+            if cls_name is None:
+                cls_name = "Test " + str(i+1)
+            self.queue.put(["start", cls_name])
+            parent_xml = self._add_test_XML(cls_name)
             class_methods = self._get_class_methods(cls)
             class_methods.sort(key=lambda x: x[1])
             for method in class_methods:
@@ -100,12 +106,12 @@ class Procesar(threading.Thread):
                 try:
                     func()
                 except Exception as e:
-                    self.queue.put(["fail", description + "\n Error:" + str(e)])
-                    self._add_step_XML(parent_XML, "fail", step, description)
+                    self.queue.put(["fail", description, str(e)])
+                    self._add_step_XML(parent_xml, "fail", step, description + " Error:" + str(e))
                     step += 1
                 else:
                     self.queue.put(["pass", description])
-                    self._add_step_XML(parent_XML, "pass", step, description)
+                    self._add_step_XML(parent_xml, "pass", step, description)
                     step += 1
             self.queue.put(["end", cls.get_name()])
             self._save_XML()

@@ -57,7 +57,7 @@ class Window(tk.Tk):
         self.thread_running = False
         self.thread = None
         self.run_module = None
-        self.run_module_path = None
+        self.run_module_path = ""
         # FONTS
         self.text_font = None
         self.title_font = None
@@ -177,28 +177,39 @@ class Window(tk.Tk):
 
         self.button_run = tk.Button(menu, state="disabled", text="Run Test", image=self.image_run, compound="left",
                                     height=30, font=self.text_font, fg="White", bd=0, bg="#1eab1e",
-                                    command=lambda: self.run_test())
+                                    command=lambda: self.run_test_button())
         menu.grid_propagate(1)
         self.button_steps.grid(row=0, column=1, padx=2)
         self.button_run.grid(row=0, column=0, padx=2)
 
-    def run_test(self):
-        if self.run_module is None:
-            PopUpWindow.LoadModuleWindow(self)
+        self.button_run.bind("<Enter>", self.on_enter)
+        self.button_run.bind("<Leave>", self.on_leave)
 
+    def on_enter(self, event = None):
+        if self.thread_running is False:
+            self.button_run['background'] = "#0b5cb5"
+
+    def on_leave(self, event = None):
+        if self.thread_running is False:
+            self.button_run['background'] = "#1eab1e"
+
+    def run_test_button(self):
+        pop_up = PopUpWindow.LoadModuleWindow(self)
+        pop_up.set_file_path(str(self.run_module_path))
+
+    def run_test(self):
+        if self.thread_running is False:
+            self.thread_running = True
+            self.get_frame("Steps").text.delete("1.0", "end")
+            self.button_run.configure(text="Running Tests", image=self.image_running, bg="#0b5cb5")
+            self.thread = ExecuteMethods.Procesar(self.get_frame("Steps"), self.queue, self.run_module)
+            self.thread.start()
+            self.after(0, self.update_run)
         else:
-            if self.thread_running is False:
-                self.thread_running = True
-                self.get_frame("Steps").text.delete("1.0", "end")
-                self.button_run.configure(text="Running Tests", image=self.image_running, bg="#0b5cb5")
-                self.thread = ExecuteMethods.Procesar(self.get_frame("Steps"), self.queue, self.run_module)
-                self.thread.start()
-                self.after(0, self.update_run)
-            else:
-                del self.thread
-                gc.collect()
-                self.thread_running = False
-                self.button_run.configure(state="normal", text="re-Run Tests", bg="#1eab1e")
+            del self.thread
+            gc.collect()
+            self.thread_running = False
+            self.button_run.configure(state="normal", text="re-Run Tests", bg="#1eab1e")
 
     def load_images(self):
         """Search and load the images needed for the GUI"""
@@ -240,7 +251,7 @@ class Window(tk.Tk):
             if msg[0] == "pass":
                 steps.step_pass(msg[1])
             if msg[0] == "fail":
-                steps.step_fail(msg[1])
+                steps.step_fail(msg[1], msg[2])
             if msg[0] == "xml_name":
                 self.current_xml = msg[1]
 
@@ -252,10 +263,12 @@ class Window(tk.Tk):
                 sys.exit(0)
 
     def set_module(self, path):
-        spec = importlib.util.spec_from_file_location("module.name", path)
+        spec = importlib.util.spec_from_file_location("testrun.case", path)
         imported_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(imported_module)
+        sys.modules["testrun.case"] = imported_module
         self.run_module = imported_module
+        self.run_module_path = path
         self.run_test()
 
 
