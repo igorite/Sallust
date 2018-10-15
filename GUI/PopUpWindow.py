@@ -26,7 +26,7 @@ class LoadModuleWindow(tk.Toplevel):
         self.path_string = tk.StringVar()
         self.grab_set()
         self.menu_bar()
-        self.set_title("Load module")
+        self.set_title("Load test module")
 
     def menu_bar(self):
         self.geometry("400x130+%d+%d" % (self.winfo_screenwidth()*0.4, self.winfo_screenheight() * 0.4))
@@ -55,9 +55,9 @@ class LoadModuleWindow(tk.Toplevel):
         self.label.pack()
         self.top_bar.pack(fill=tk.X, anchor="n")
         self.top_bar.bind("<B1 Motion>", self._move_window)
-        self.top_bar.bind("<Button 1>", self.clickwin)
+        self.top_bar.bind("<Button 1>", self.click_win)
         self.label.bind("<B1 Motion>", self._move_window)
-        self.label.bind("<Button 1>", self.clickwin)
+        self.label.bind("<Button 1>", self.click_win)
         self.main_frame.pack(expand=1, fill="both", padx=3, pady=3)
 
     def _move_window(self, event=None):
@@ -65,7 +65,7 @@ class LoadModuleWindow(tk.Toplevel):
         y = self.winfo_pointery() - self._offset_y
         self.geometry('+{x}+{y}'.format(x=x, y=y))
 
-    def clickwin(self, event):
+    def click_win(self, event):
         self._offset_x = event.x
         self._offset_y = event.y
 
@@ -77,9 +77,12 @@ class LoadModuleWindow(tk.Toplevel):
         self.filename = filedialog.askopenfilename(initialdir="/", title="Select file",
                                                    filetypes=(("Python files", "*.py"), ("all files", "*.*")))
         self.state("normal")
+        self.set_file_path(self.filename)
+
+    def set_file_path(self, path):
+        self.path_string = path
         self.entry.delete(0, "end")
-        self.path_string = self.filename
-        self.entry.insert("end", self.path_string)
+        self.entry.insert("end", path)
         self.entry.xview("end")
 
     def module_import(self):
@@ -91,3 +94,5 @@ class LoadModuleWindow(tk.Toplevel):
         except Exception as e:
             self.error_label.configure(text="Error while loading module. Try again")
             print(str(e))
+
+
