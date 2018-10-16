@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<test_run>
+  <testcase name="Specialisterne">
+    <step order="1">
+      <status>passed</status>
+      <time>00:06</time>
+      <description>Go to google</description>
+      <error></error>
+    </step>
+    <step order="2">
+      <status>passed</status>
+      <time>00:08</time>
+      <description>Search the word 'Specialisterne'</description>
+      <error></error>
+    </step>
+    <step order="3">
+      <status>passed</status>
+      <time>00:15</time>
+      <description>Go to first link in the results</description>
+      <error></error>
+    </step>
+    <step order="4">
+      <status>passed</status>
+      <time>00:18</time>
+      <description>Close the browser</description>
+      <error></error>
+    </step>
+  </testcase>
+</test_run>

@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<test_run>
+  <testcase name="Specialisterne">
+    <step status="pass" step="1">Go to google</step>
+    <step status="pass" step="2">Search the word 'Specialisterne'</step>
+    <step status="pass" step="3">Go to first link in the results</step>
+    <step status="pass" step="4">Close the browser</step>
+  </testcase>
+</test_run>
