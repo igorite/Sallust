@@ -3,6 +3,7 @@ from tkinter.font import Font
 
 
 class PageXML(tk.Frame):
+    """ Load and """
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -20,9 +21,16 @@ class PageXML(tk.Frame):
                             highlightthickness=10,
                             bg=controller.light_color)
         self.text.pack(expand=1, fill="both")
+        self.imported_xml = False
 
-    def create_XML(self):
+    def create_xml(self):
+        if self.imported_xml is False:
+            self.text.delete("1.0", "end")
+            with open(self.controller.current_xml, "r") as f:
+                string_xml = f.read()
+                self.text.insert("end", string_xml)
+
+    def set_xml(self, string_xml):
+        self.imported_xml = True
         self.text.delete("1.0", "end")
-        with open(self.controller.current_xml, "r") as f:
-            strxml = f.read()
-            self.text.insert("end", strxml)
+        self.text.insert("end", string_xml)
