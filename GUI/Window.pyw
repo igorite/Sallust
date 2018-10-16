@@ -3,13 +3,12 @@ import gc
 import importlib
 import queue
 import sys
+from PIL import Image, ImageTk
 # BUILT IN
 import tkinter as tk
-from tkinter import font as tkfont
+from tkinter import font as tk_font
 from tkinter.font import Font
-
-from PIL import Image, ImageTk
-
+# PACKAGE IMPORTS
 from GUI import PageXML, Graphics, PopUpWindow, Steps
 from Tools import ExecuteMethods
 
@@ -17,7 +16,7 @@ from Tools import ExecuteMethods
 class Window(tk.Tk):
     # WINDOW INFO
     window_title = "Sallust"
-    version = 0.2
+    version = 0.12
     screen_height = 500
     screen_width = 500
     running = True
@@ -58,6 +57,8 @@ class Window(tk.Tk):
         self.thread = None
         self.run_module = None
         self.run_module_path = ""
+        self.total_test_case = 0
+
         # FONTS
         self.text_font = None
         self.title_font = None
@@ -74,7 +75,7 @@ class Window(tk.Tk):
         self._create_container()
         self.button_run.configure(state="normal")
         self.deiconify()
-        self.geometry("700x%d+%d+0" % (self.screen_height, self.winfo_screenwidth() - 710))
+        self.geometry("710x%d+%d+0" % (self.screen_height*0.95, self.winfo_screenwidth() - 710))
 
     def show_frame(self, page_name):
         """Show a frame for the given page name"""
@@ -103,13 +104,13 @@ class Window(tk.Tk):
 
     def load_xml(self):
         self.show_frame("PageXML")
-        self.get_frame("PageXML").create_XML()
+        self.get_frame("PageXML").create_xml()
 
     def _move_window(self, event=None):
         self.geometry('+{0}+{1}'.format(event.x_root, event.y_root))
 
     def _create_container(self):
-        self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
+        self.title_font = tk_font.Font(family='Helvetica', size=18, weight="bold", slant="italic")
 
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
@@ -145,12 +146,14 @@ class Window(tk.Tk):
         self.config(bg=self.light_color)
         self.focus_get()
 
-        self.title_font = Font(family="Verdana",
-                               size=14)
-        self.text_font = Font(family="Verdana",
-                              size=12)
+        self.title_font = Font(family="Verdana", size=14)
+        self.text_font = Font(family="Verdana", size=12)
 
-        toolbar = tk.Frame(self, bg=self.dark_color, height=300, borderwidth=0, relief="ridge")
+        toolbar = tk.Frame(self,
+                           bg=self.dark_color,
+                           height=300,
+                           borderwidth=0,
+                           relief="ridge")
         toolbar.pack(fill="both")
         toolbar.bind('<B1-Motion>', self._move_window)
         self.icon = tk.Label(toolbar, image=self.image_icon, bg=self.dark_color).grid(row=0, column=1)
@@ -178,9 +181,33 @@ class Window(tk.Tk):
         self.button_run = tk.Button(menu, state="disabled", text="Run Test", image=self.image_run, compound="left",
                                     height=30, font=self.text_font, fg="White", bd=0, bg="#1eab1e",
                                     command=lambda: self.run_test_button())
+
+        self.button_load_xml = tk.Button(menu, text="Load XML", image=self.image_xml, compound="left", height=30,
+                                         font=self.text_font, fg="White", bd=0, bg=self.button_color,
+                                         command=lambda: self.load_xml_button())
+
         menu.grid_propagate(1)
         self.button_steps.grid(row=0, column=1, padx=2)
         self.button_run.grid(row=0, column=0, padx=2)
+        self.button_load_xml.grid(row=0, column=5, padx=2)
+        self.button_run.bind("<Enter>", self.on_enter)
+        self.button_run.bind("<Leave>", self.on_leave)
+
+    def on_enter(self, event=None):
+        if self.thread_running is False:
+            self.button_run['background'] = "#0b5cb5"
+
+    def on_leave(self, event=None):
+        if self.thread_running is False:
+            self.button_run['background'] = "#1eab1e"
+
+    def update_run_button(self):
+        status = "(" + str(len(self.data_tests)+1) + "/" + str(self.total_test_case) + ")"
+        self.title(self.window_title + status)
+        self.button_run.configure(text=status + " Tests")
+
+    def load_xml_button(self):
+        PopUpWindow.PopUpLoadXML(self, self.get_frame("Steps"))
 
         self.button_run.bind("<Enter>", self.on_enter)
         self.button_run.bind("<Leave>", self.on_leave)
@@ -197,11 +224,16 @@ class Window(tk.Tk):
         pop_up = PopUpWindow.LoadModuleWindow(self)
         pop_up.set_file_path(str(self.run_module_path))
 
+    def show_buttons(self):
+        self.button_graphics.grid(row=0, column=2, padx=2)
+        self.button_xml.grid(row=0, column=3, padx=2)
+
     def run_test(self):
         if self.thread_running is False:
             self.thread_running = True
             self.get_frame("Steps").text.delete("1.0", "end")
             self.button_run.configure(text="Running Tests", image=self.image_running, bg="#0b5cb5")
+            self.thread = ExecuteMethods.Process(self.get_frame("Steps"), self.queue, self.run_module)
             self.thread = ExecuteMethods.Procesar(self.get_frame("Steps"), self.queue, self.run_module)
             self.thread.start()
             self.after(0, self.update_run)
@@ -235,6 +267,9 @@ class Window(tk.Tk):
         steps = self.get_frame("Steps")
         try:
             msg = self.queue.get()
+            if msg[0] == "n_test_case":
+                self.total_test_case = msg[1]
+                self.update_run_button()
             if msg[0] == "finish_thread":
                 Window.test_not_run = 0
                 self.button_run.configure(state="normal", text="re-Run Tests", bg="#1eab1e")
@@ -245,7 +280,7 @@ class Window(tk.Tk):
             else:
                 self.after(0, self.update_run)
             if msg[0] == "start":
-                steps.test_name(msg[1])
+                steps.add_test_case(msg[1])
             if msg[0] == "end":
                 steps.test_finish()
             if msg[0] == "pass":
