@@ -33,6 +33,11 @@ class LoadModuleWindow(tk.Toplevel):
         self.path_string = ""
         self.title_font = Font(family="Verdana", size=12)
         self.text_font = Font(family="Verdana", size=12)
+        self.path_string = tk.StringVar()
+        self.grab_set()
+        self.menu_bar()
+        self.set_title("Load test module")
+
 
         # Init methods of the window
         self.create_top_bar()
@@ -69,12 +74,15 @@ class LoadModuleWindow(tk.Toplevel):
         self.label.bind("<B1 Motion>", self._move_window)
         self.label.bind("<Button 1>", self.click_win)
 
+
     def create_main_frame(self):
         """" Create the main frame of the window and it's elements """
         # Create the main frame
         self.main_frame = tk.Frame(self,
                                    bg=self.controller.dark_color,
                                    bd=10)
+
+
 
         self.main_frame.pack(expand=1, fill="both", padx=3, pady=3)
 
@@ -170,7 +178,9 @@ class LoadModuleWindow(tk.Toplevel):
         self.geometry('+{x}+{y}'.format(x=x, y=y))
 
     def click_win(self, event):
+
         """set the offset of the mouse when moving the window"""
+
         self._offset_x = event.x
         self._offset_y = event.y
 
@@ -309,8 +319,17 @@ class PopUpLoadXML(tk.Toplevel):
                                                               ("all files", "*.*")))
         # make the window visible again
         self.state("normal")
+
         # set the file path
         self.set_file_path(self.filename)
+
+        self.set_file_path(self.filename)
+
+    def set_file_path(self, path):
+        self.path_string = path
+        self.entry.delete(0, "end")
+        self.entry.insert("end", path)
+        self.entry.xview("end")
 
     def xml_import(self):
         """try to import the XML file of the entry field. If succeed then closes the window. If not, then shows
@@ -329,6 +348,7 @@ class PopUpLoadXML(tk.Toplevel):
             # Close the window
             self.destroy()
 
+
     #
     # Motion methods
     #
@@ -343,3 +363,9 @@ class PopUpLoadXML(tk.Toplevel):
         """set the offset of the mouse when moving the window"""
         self._offset_x = event.x
         self._offset_y = event.y
+
+        except Exception as e:
+            self.error_label.configure(text="Error while loading module. Try again")
+            print(str(e))
+
+
