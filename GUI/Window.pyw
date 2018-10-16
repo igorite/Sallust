@@ -58,7 +58,6 @@ class Window(tk.Tk):
         self.run_module = None
         self.run_module_path = ""
         self.total_test_case = 0
-
         # FONTS
         self.text_font = None
         self.title_font = None
@@ -185,7 +184,6 @@ class Window(tk.Tk):
         self.button_load_xml = tk.Button(menu, text="Load XML", image=self.image_xml, compound="left", height=30,
                                          font=self.text_font, fg="White", bd=0, bg=self.button_color,
                                          command=lambda: self.load_xml_button())
-
         menu.grid_propagate(1)
         self.button_steps.grid(row=0, column=1, padx=2)
         self.button_run.grid(row=0, column=0, padx=2)
@@ -209,17 +207,6 @@ class Window(tk.Tk):
     def load_xml_button(self):
         PopUpWindow.PopUpLoadXML(self, self.get_frame("Steps"))
 
-        self.button_run.bind("<Enter>", self.on_enter)
-        self.button_run.bind("<Leave>", self.on_leave)
-
-    def on_enter(self, event = None):
-        if self.thread_running is False:
-            self.button_run['background'] = "#0b5cb5"
-
-    def on_leave(self, event = None):
-        if self.thread_running is False:
-            self.button_run['background'] = "#1eab1e"
-
     def run_test_button(self):
         pop_up = PopUpWindow.LoadModuleWindow(self)
         pop_up.set_file_path(str(self.run_module_path))
@@ -234,7 +221,6 @@ class Window(tk.Tk):
             self.get_frame("Steps").text.delete("1.0", "end")
             self.button_run.configure(text="Running Tests", image=self.image_running, bg="#0b5cb5")
             self.thread = ExecuteMethods.Process(self.get_frame("Steps"), self.queue, self.run_module)
-            self.thread = ExecuteMethods.Procesar(self.get_frame("Steps"), self.queue, self.run_module)
             self.thread.start()
             self.after(0, self.update_run)
         else:

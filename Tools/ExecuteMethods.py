@@ -155,39 +155,6 @@ class Process(threading.Thread):
     def new_execute_methods(self):
         n_test_case = len(self._modules_classes)
         self.queue.put(["n_test_case", n_test_case])
-
-
-                    position = inspect.findsource(obj)[1]
-                    self._modules_classes.append([obj, position])
-        self._modules_classes.sort(key=lambda x: x[1])
-
-    def _process_classes_methods(self, classes_of_module):
-        """"Gets all methods of the given classes that it's name start with the words 'test' and store them in a list.
-         each element of the list is a list which contains the method class, the method itself and the line position of
-         the method in it's module"""
-        for cls in classes_of_module:
-            # get all the methods of the given class
-            cls_methods = dir(cls)
-            for method in cls_methods:
-                # check if the method name starts with 'test'
-                if method[0:4] == "test":
-                    func = getattr(cls, method)
-                    position = inspect.findsource(func)[1]
-                    self._run_methods.append([cls, method, position])
-
-    def _get_class_methods(self, cls):
-        methods = []
-        cls_methods = dir(cls)
-        for method in cls_methods:
-            # check if the method name starts with 'test'
-            if method[0:4] == "test":
-                func = getattr(cls, method)
-                position = inspect.findsource(func)[1]
-                methods.append([method, position])
-        return methods
-
-    def new_execute_methods(self):
-        step = 1
         for i in range(len(self._modules_classes)):
             try:
                 cls = self._modules_classes[i][0]()
@@ -197,16 +164,12 @@ class Process(threading.Thread):
                 pass
             self.time_start = datetime.now()
             step_order = 1
-            step = 1
             cls_name = cls.get_name()
             if cls_name is None:
                 cls_name = "Test " + str(i+1)
             self.queue.put(["start", cls_name])
             parent_xml = self._add_test_xml(cls_name)
             class_methods = _get_class_methods(cls)
-            parent_xml = self._add_test_XML(cls_name)
-            class_methods = self._get_class_methods(cls)
-            class_methods.sort(key=lambda x: x[1])
             for method in class_methods:
                 func = cls.__getattribute__(method[0])
                 description = inspect.getdoc(func)
@@ -227,9 +190,6 @@ class Process(threading.Thread):
                     else:
                         _add_step_error_message(step, str(e))
                     step_order += 1
-                    self.queue.put(["fail", description, str(e)])
-                    self._add_step_XML(parent_xml, "fail", step, description + " Error:" + str(e))
-                    step += 1
                 else:
                     now = datetime.now() - self.time_start
                     elapsed_time = _parse_time(now)
@@ -239,51 +199,6 @@ class Process(threading.Thread):
                     _add_step_time_xml(step, elapsed_time)
                     _add_step_description(step, description)
                     _add_step_error_message(step, "")
-                    self._add_step_XML(parent_xml, "pass", step, description)
-                    step += 1
-            self.queue.put(["end", cls.get_name()])
-            self._save_XML()
-
-    def _sort_run_methods(self):
-        """sort the run methods by its line position on the module"""
-        self._run_methods.sort(key=lambda x:  x[2])
-
-    def execute_methods(self):
-        test_case = self._run_methods[0][0]().get_name()
-        parent_XML = self._add_test_XML(test_case)
-        step = 1
-        self.cls = self._run_methods[0][0]()
-        self.queue.put(["start", test_case])
-        for method in self._run_methods:
-            method_test_name = method[0]().get_name()
-            if method_test_name != test_case:
-                self.queue.put(["end", test_case])
-                test_case = method_test_name
-                self.cls = method[0]()
-                self.queue.put(["start", test_case])
-                parent_XML = self._add_test_XML(test_case)
-                step = 1
-            execute = getattr(self.cls, method[1])
-            description = inspect.getdoc(execute)
-            if description is None:
-                description = "There is no description of this step"
-            try:
-                execute()
-            except Exception as e:
-                self.queue.put(["fail", description + "\n Error:" + str(e)])
-                self._add_step_XML(parent_XML, "fail", step, description)
-                step += 1
-            else:
-                self.queue.put(["pass", description])
-                self._add_step_XML(parent_XML, "pass", step, description)
-                step += 1
-        self.queue.put(["end", test_case])
-        self.queue.put(["finish_thread", 0])
-        try:
-            self._save_XML()
-        except Exception:
-            pass
-        self.queue.put(["finish_thread", 0])
 
                     step_order += 1
             self.queue.put(["end", cls.get_name()])

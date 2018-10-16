@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<test_run>
+  <testcase name="Test 1">
+    <step order="1">
+      <status>passed</status>
+      <time>00:00</time>
+      <description>2 equals 1 + 1</description>
+      <error></error>
+    </step>
+    <step order="2">
+      <status>failed</status>
+      <time>00:00</time>
+      <description>20 equals 9 + 9</description>
+      <error>¯\_(ツ)_/¯</error>
+    </step>
+    <step order="3">
+      <status>passed</status>
+      <time>00:00</time>
+      <description>18 equals 9 + 9</description>
+      <error></error>
+    </step>
+    <step order="4">
+      <status>passed</status>
+      <time>00:00</time>
+      <description>1 equals 0 + 1.0</description>
+      <error></error>
+    </step>
+  </testcase>
+  <testcase name="Test 2">
+    <step order="1">
+      <status>failed</status>
+      <time>00:00</time>
+      <description>20 divided by 0 </description>
+      <error>division by zero</error>
+    </step>
+  </testcase>
+</test_run>
