@@ -326,6 +326,7 @@ class PopUpLoadXML(tk.Toplevel):
         else:
             # Show the hidden buttons of the main window
             self.controller.show_buttons()
+            self.controller.update_all()
             # Close the window
             self.destroy()
 
