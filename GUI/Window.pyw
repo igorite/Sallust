@@ -94,6 +94,10 @@ class Window(tk.Tk):
             self.button_graphics.configure(bg=self.button_color)
             self.button_xml.configure(bg=self.selected_button_color)
 
+    def update_all(self):
+        self.get_frame("PageXML").create_xml()
+        self.get_frame("Graphics").draw()
+
     def load_steps(self):
         self.show_frame("Steps")
 
@@ -200,8 +204,8 @@ class Window(tk.Tk):
             self.button_run['background'] = "#1eab1e"
 
     def update_run_button(self):
-        status = "(" + str(len(self.data_tests)+1) + "/" + str(self.total_test_case) + ")"
-        self.title(self.window_title + status)
+        status = "(" + str(len(self.data_tests) + 1) + "/" + str(self.total_test_case) + ")"
+        self.title(self.window_title +" " + status)
         self.button_run.configure(text=status + " Tests")
 
     def load_xml_button(self):
