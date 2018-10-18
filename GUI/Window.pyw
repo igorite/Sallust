@@ -21,11 +21,11 @@ class Window(tk.Tk):
     screen_width = 500
     running = True
     # COLORS
-    dark_color = "#837A97"
-    selected_button_color = "#3F3244"
-    button_color = "#554971"
-    medium_color = "#3F3244"
-    light_color = "#554971"
+    light_color = "#2e2c29"
+    selected_button_color = "#1c1b19"
+    button_color = "#1e2126"
+    medium_color = "#1e2126"
+    dark_color = "#1c1b19"
     text_color = "white"
     # IMAGES
     image_icon = None
@@ -146,20 +146,20 @@ class Window(tk.Tk):
         # self.attributes('-topmost', True)
         self.screen_height = self.winfo_screenheight() * 0.96
         self.geometry("700x%d+%d+0" % (self.screen_height, self.winfo_screenwidth()-710))
-        self.config(bg=self.light_color)
+        self.config(bg=self.dark_color)
         self.focus_get()
 
         self.title_font = Font(family="Verdana", size=14)
         self.text_font = Font(family="Verdana", size=12)
 
         toolbar = tk.Frame(self,
-                           bg=self.dark_color,
+                           bg=self.light_color,
                            height=300,
                            borderwidth=0,
                            relief="ridge")
         toolbar.pack(fill="both")
         toolbar.bind('<B1-Motion>', self._move_window)
-        self.icon = tk.Label(toolbar, image=self.image_icon, bg=self.dark_color).grid(row=0, column=1)
+        self.icon = tk.Label(toolbar, image=self.image_icon, bg=self.light_color).grid(row=0, column=1)
 
         toolbar.grid_columnconfigure(0, weight=1000)
         toolbar.grid_columnconfigure(1, weight=1)
@@ -167,7 +167,7 @@ class Window(tk.Tk):
         toolbar.grid_columnconfigure(5, weight=1000)
 
     def _create_menu(self):
-        menu = tk.Frame(self, bg=self.dark_color)
+        menu = tk.Frame(self, bg=self.light_color)
         menu.pack(fill="both")
         self.button_steps = tk.Button(menu, text="Steps", image=self.steps_icon, compound="left", height=30,
                                       font=self.text_font, fg="White", bd=0, bg=self.button_color,
@@ -182,7 +182,7 @@ class Window(tk.Tk):
                                     command=lambda: self.load_xml())
 
         self.button_run = tk.Button(menu, state="disabled", text="Run Test", image=self.image_run, compound="left",
-                                    height=30, font=self.text_font, fg="White", bd=0, bg="#1eab1e",
+                                    height=30, font=self.text_font, fg="White", bd=0, bg="#22863a",
                                     command=lambda: self.run_test_button())
 
         self.button_load_xml = tk.Button(menu, text="Load XML", image=self.image_xml, compound="left", height=30,
@@ -262,7 +262,7 @@ class Window(tk.Tk):
                 self.update_run_button()
             if msg[0] == "finish_thread":
                 Window.test_not_run = 0
-                self.button_run.configure(state="normal", text="re-Run Tests", bg="#1eab1e")
+                self.button_run.configure(state="normal", text="re-Run Tests", bg="#22863a")
                 self.thread_running = False
                 self.button_graphics.grid(row=0, column=2, padx=2)
                 self.button_xml.grid(row=0, column=3, padx=2)

@@ -27,7 +27,7 @@ class Graphics(tk.Frame):
         self.sizes = [0, 0]
         self.test_length = 0
         self.labels = "Passed", "Failed"
-        self.colors = "#2ba401", "#cd1a1a"
+        self.colors = "#22863a", "#450d0f"
         font = {'family': 'Verdana',
                 'weight': 'bold',
                 'size': 7}
@@ -117,8 +117,8 @@ class Graphics(tk.Frame):
         self.plot_bars.yaxis.label.set_color('#ffffff')
         self.plot_bars.xaxis.label.set_color('#ffffff')
         self.plot_bars.axis([-0.5, self.test_length, 0, self.higher_test * 1.3])
-        self.plot_bars.bar(ind, steps, 0.2, color="#cd1a1a")
-        self.plot_bars.bar(ind, passed, 0.2, color="#2ba401")
+        self.plot_bars.bar(ind, steps, 0.2, color="#450d0f")
+        self.plot_bars.bar(ind, passed, 0.2, color="#22863a")
         self.plot_bars.set_facecolor(self.controller.light_color)
         self.plot_bars.set_xticks(ind)
         self.plot_bars.set_xticklabels(range(1,self.test_length+1))

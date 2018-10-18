@@ -47,30 +47,33 @@ class Steps(tk.Frame):
         and the navigation of the search bar.
         """
         # Create option Bar
-        self.option_bar = tk.Frame(self, bg=self.controller.medium_color)
+        self.option_bar = tk.Frame(self, bg=self.controller.dark_color)
         self.option_bar.pack(fill=tk.X)
 
         # Create option bar elements
         self.passed_button = tk.Checkbutton(self.option_bar,
                                             text="Hide passed",
-                                            bd=1,
-                                            overrelief=tk.GROOVE,
+                                            bd=2,
+                                            relief=tk.RIDGE,
+                                            overrelief=tk.RIDGE,
                                             command=lambda: self.hide_passed(),
                                             font=self.text_font,
                                             indicatoron=False,
                                             bg=self.controller.light_color,
                                             fg="White",
-                                            selectcolor=self.controller.dark_color)
+                                            selectcolor="#444d57")
 
         self.error_button = tk.Checkbutton(self.option_bar,
                                            text="Hide error message",
-                                           bd=1, overrelief=tk.GROOVE,
+                                           bd=2,
+                                           relief=tk.RIDGE,
+                                           overrelief=tk.RIDGE,
                                            command=lambda: self.hide_error_message(),
                                            font=self.text_font,
                                            indicatoron=False,
                                            bg=self.controller.light_color,
                                            fg="White",
-                                           selectcolor=self.controller.dark_color)
+                                           selectcolor="#444d57")
 
         self.validator = (self.register(self.search), '%P')
 
@@ -86,7 +89,9 @@ class Steps(tk.Frame):
         self.search_next_button = tk.Button(self.option_bar,
                                             text=">",
                                             font=self.text_font,
-                                            bd=0,
+                                            bd=1,
+                                            relief=tk.RIDGE,
+                                            overrelief=tk.RIDGE,
                                             fg="White",
                                             bg=self.controller.light_color,
                                             command=lambda: self.search_next())
@@ -94,14 +99,16 @@ class Steps(tk.Frame):
         self.search_previous_button = tk.Button(self.option_bar,
                                                 text="<",
                                                 font=self.text_font,
-                                                bd=0,
+                                                bd=1,
+                                                relief=tk.RIDGE,
+                                                overrelief=tk.RIDGE,
                                                 fg="White",
                                                 bg=self.controller.light_color,
                                                 command=lambda: self.search_previous())
 
         self.results_label = tk.Label(self.option_bar,
                                       text="",
-                                      bg=self.controller.medium_color,
+                                      bg=self.controller.dark_color,
                                       fg="White")
 
         # Grid option bar elements
@@ -124,8 +131,8 @@ class Steps(tk.Frame):
                             wrap="word",
                             state="disabled",
                             font=self.text_font,
-                            highlightbackground=self.controller.medium_color,
-                            highlightcolor=self.controller.medium_color,
+                            highlightbackground=self.controller.dark_color,
+                            highlightcolor=self.controller.dark_color,
                             highlightthickness=10,
                             bg=self.controller.light_color)
         self.text.pack(expand=1, fill="both")
@@ -173,16 +180,16 @@ class Steps(tk.Frame):
                                 background="#c10a0a")
 
         self.text.tag_configure("passed_header",
-                                background="#1eab1e")
+                                background="#22863a")
         self.text.tag_configure("failed_header",
-                                background="#cc2525")
+                                background="#450d0f")
 
         self.text.tag_configure("step_hover",
-                                background="#695c87")
+                                background="#444d57")
         self.text.tag_configure("failed_hover",
                                 background="#8b1414")
         self.text.tag_configure("passed_hover",
-                                background="#26900e")
+                                background="#1f6331")
 
         self.text.tag_bind("passed", "<Motion>", self.step_hover)
         self.text.tag_bind("failed", "<Motion>", self.step_hover)
@@ -316,7 +323,7 @@ class Steps(tk.Frame):
             self.text.insert(self.test_name_index,
                              " ", "header")
             self.text.image_create(str(self.test_name_index),
-                                   image=self.controller.image_ok_test,
+                                   image=self.controller.image_ok,
                                    pady=0)
             self.text.tag_add("passed",
                               str(self.test_name_index),
@@ -340,7 +347,7 @@ class Steps(tk.Frame):
                              " ", "header")
 
             self.text.image_create(self.test_name_index,
-                                   image=self.controller.image_fail_test,
+                                   image=self.controller.image_fail,
                                    pady=0)
 
             self.text.tag_add("failed_header",

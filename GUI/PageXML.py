@@ -26,7 +26,7 @@ class PageXML(tk.Frame):
         self.text.pack(expand=1, fill="both")
 
         self.text.tag_configure("hover_line",
-                                background="#695c87")
+                                background="#444d57")
         self.text.tag_configure("code_character",
                                 foreground="#ff943c")
         self.text.tag_configure("string_character",
