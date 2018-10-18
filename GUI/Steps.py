@@ -47,30 +47,33 @@ class Steps(tk.Frame):
         and the navigation of the search bar.
         """
         # Create option Bar
-        self.option_bar = tk.Frame(self, bg=self.controller.medium_color)
+        self.option_bar = tk.Frame(self, bg=self.controller.dark_color)
         self.option_bar.pack(fill=tk.X)
 
         # Create option bar elements
         self.passed_button = tk.Checkbutton(self.option_bar,
                                             text="Hide passed",
-                                            bd=1,
-                                            overrelief=tk.GROOVE,
+                                            bd=2,
+                                            relief=tk.RIDGE,
+                                            overrelief=tk.RIDGE,
                                             command=lambda: self.hide_passed(),
                                             font=self.text_font,
                                             indicatoron=False,
                                             bg=self.controller.light_color,
                                             fg="White",
-                                            selectcolor=self.controller.dark_color)
+                                            selectcolor="#444d57")
 
         self.error_button = tk.Checkbutton(self.option_bar,
                                            text="Hide error message",
-                                           bd=1, overrelief=tk.GROOVE,
+                                           bd=2,
+                                           relief=tk.RIDGE,
+                                           overrelief=tk.RIDGE,
                                            command=lambda: self.hide_error_message(),
                                            font=self.text_font,
                                            indicatoron=False,
                                            bg=self.controller.light_color,
                                            fg="White",
-                                           selectcolor=self.controller.dark_color)
+                                           selectcolor="#444d57")
 
         self.validator = (self.register(self.search), '%P')
 
@@ -86,7 +89,9 @@ class Steps(tk.Frame):
         self.search_next_button = tk.Button(self.option_bar,
                                             text=">",
                                             font=self.text_font,
-                                            bd=0,
+                                            bd=1,
+                                            relief=tk.RIDGE,
+                                            overrelief=tk.RIDGE,
                                             fg="White",
                                             bg=self.controller.light_color,
                                             command=lambda: self.search_next())
@@ -94,14 +99,16 @@ class Steps(tk.Frame):
         self.search_previous_button = tk.Button(self.option_bar,
                                                 text="<",
                                                 font=self.text_font,
-                                                bd=0,
+                                                bd=1,
+                                                relief=tk.RIDGE,
+                                                overrelief=tk.RIDGE,
                                                 fg="White",
                                                 bg=self.controller.light_color,
                                                 command=lambda: self.search_previous())
 
         self.results_label = tk.Label(self.option_bar,
                                       text="",
-                                      bg=self.controller.medium_color,
+                                      bg=self.controller.dark_color,
                                       fg="White")
 
         # Grid option bar elements
@@ -115,7 +122,7 @@ class Steps(tk.Frame):
         self.search_next_button.grid_remove()
 
     def _create_text_widget(self):
-        """Creates and configure the text widget in which the data will be writed"""
+        """Creates and configure the text widget in which the data will be writen"""
         # Create Text Widget
         self.text = tk.Text(self,
                             cursor="arrow",
@@ -124,8 +131,8 @@ class Steps(tk.Frame):
                             wrap="word",
                             state="disabled",
                             font=self.text_font,
-                            highlightbackground=self.controller.medium_color,
-                            highlightcolor=self.controller.medium_color,
+                            highlightbackground=self.controller.dark_color,
+                            highlightcolor=self.controller.dark_color,
                             highlightthickness=10,
                             bg=self.controller.light_color)
         self.text.pack(expand=1, fill="both")
@@ -173,46 +180,50 @@ class Steps(tk.Frame):
                                 background="#c10a0a")
 
         self.text.tag_configure("passed_header",
-                                background="#65c73e")
+                                background="#22863a")
         self.text.tag_configure("failed_header",
-                                background="#c10a0a")
+                                background="#450d0f")
 
-        self.text.tag_configure("passed_hover",
-                                background="#695c87")
+        self.text.tag_configure("step_hover",
+                                background="#444d57")
         self.text.tag_configure("failed_hover",
-                                background="#695c87")
+                                background="#8b1414")
+        self.text.tag_configure("passed_hover",
+                                background="#1f6331")
 
-        self.text.bind( "<Motion>", self.probando)
+        self.text.tag_bind("passed", "<Motion>", self.step_hover)
+        self.text.tag_bind("failed", "<Motion>", self.step_hover)
+        self.text.tag_bind("failed_header", "<Motion>", self.failed_header_hover)
+        self.text.tag_bind("passed_header", "<Motion>", self.passed_header_hover)
 
+        self.text.tag_lower("passed", "hidden")
+        self.text.tag_lower("failed_message", "hidden")
+        self.text.tag_raise("step_hover", "passed")
+        self.text.tag_raise("failed_hover", "failed_header")
     #
     # WRITE FUNCTIONS
     #
-    def probando(self, event=None):
-        self.text.tag_remove("passed_hover", "1.0", "end")
-        self.text.tag_remove("failed_hover", "1.0", "end")
-        self.text.tag_remove("header_hover", "1.0", "end")
-        index = self.text.index("current")
-        self.text.tag_raise("passed_hover","passed")
-        self.text.tag_add("passed_hover", str(index)+" linestart", str(index) + " lineend + 1 char")
-        print(str(self.text.index("current")))
 
-    def probando_2(self, event=None):
-        self.text.tag_remove("passed_hover", "1.0", "end")
+    def step_hover(self, event=None):
+        self.text.tag_remove("step_hover", "1.0", "end")
         self.text.tag_remove("failed_hover", "1.0", "end")
-        self.text.tag_remove("header_hover", "1.0", "end")
+        self.text.tag_remove("passed_hover", "1.0", "end")
         index = self.text.index("current")
-        self.text.tag_raise("passed_hover","passed")
+        self.text.tag_add("step_hover", str(index)+" linestart", str(index) + " lineend + 1 char")
+
+    def failed_header_hover(self, event=None):
+        self.text.tag_remove("step_hover", "1.0", "end")
+        self.text.tag_remove("failed_hover", "1.0", "end")
+        self.text.tag_remove("passed_hover", "1.0", "end")
+        index = self.text.index("current")
         self.text.tag_add("failed_hover", str(index)+" linestart", str(index) + " lineend + 1 char")
-        print(str(self.text.index("current")))
 
-    def probando_3(self, event=None):
-        self.text.tag_remove("passed_hover", "1.0", "end")
+    def passed_header_hover(self, event=None):
+        self.text.tag_remove("step_hover", "1.0", "end")
         self.text.tag_remove("failed_hover", "1.0", "end")
-        self.text.tag_remove("header_hover", "1.0", "end")
+        self.text.tag_remove("passed_hover", "1.0", "end")
         index = self.text.index("current")
-        self.text.tag_raise("passed_hover","passed")
-        self.text.tag_add("header_hover", str(index)+" linestart", str(index) + " lineend + 1 char")
-        print(str(self.text.index("current")))
+        self.text.tag_add("passed_hover", str(index) + " linestart", str(index) + " lineend + 1 char")
 
     def add_test_case(self, name):
         """Print to the text widget a header and start a new test case
@@ -290,7 +301,7 @@ class Steps(tk.Frame):
         self.text.insert("end", "%s  %s \n" % (time, message), "failed")
         # if there is no error message print consequently
         if error_message is "":
-            error_message = "¯\_(ツ)_/¯"
+            error_message = "Without error message"
         self.text.insert("end", error_message + "\n", "failed_message")
         self.text.config(state="disabled")
         # if new line is not visible scroll down until it's visible
@@ -305,21 +316,44 @@ class Steps(tk.Frame):
         if self.test_status:
             # Change the header of the test case
             self.text.configure(state="normal")
-            self.text.delete(str(self.test_name_index), str(self.test_name_index) + "+1 chars")
-            self.text.insert(self.test_name_index, " ", "header")
-            self.text.image_create(str(self.test_name_index), image=self.controller.image_ok_test,
+
+            self.text.delete(str(self.test_name_index),
+                             str(self.test_name_index) + "+1 chars")
+
+            self.text.insert(self.test_name_index,
+                             " ", "header")
+            self.text.image_create(str(self.test_name_index),
+                                   image=self.controller.image_ok,
                                    pady=0)
-            self.text.tag_add("passed", str(self.test_name_index), str(self.test_name_index) + " lineend + 1 char")
+            self.text.tag_add("passed",
+                              str(self.test_name_index),
+                              str(self.test_name_index) + " lineend + 1 char")
+
+            self.text.tag_add("passed_header",
+                              str(self.test_name_index),
+                              str(self.test_name_index) + " lineend + 1 char")
+
             self.text.configure(state="disabled")
             # increase the variable
             self.controller.test_passed += 1
         else:
             # Change the header of the test case
             self.text.configure(state="normal")
-            self.text.delete(str(self.test_name_index), str(self.test_name_index) + "+1 chars")
-            self.text.insert(str(self.test_name_index), " ", "header")
-            self.text.image_create(self.test_name_index, image=self.controller.image_fail_test,
+
+            self.text.delete(str(self.test_name_index),
+                             str(self.test_name_index) + "+1 chars")
+
+            self.text.insert(str(self.test_name_index),
+                             " ", "header")
+
+            self.text.image_create(self.test_name_index,
+                                   image=self.controller.image_fail,
                                    pady=0)
+
+            self.text.tag_add("failed_header",
+                              str(self.test_name_index),
+                              str(self.test_name_index) + " lineend + 1 char")
+
             self.text.configure(state="disabled")
             # increase the variable
             self.controller.test_failed += 1
@@ -436,9 +470,6 @@ class Steps(tk.Frame):
     def _toggle_visibility(self, event=None):
         """ hide or show the steps of the 'selected' test case """
 
-        # Lower the tag stack of passed and failed message
-        self.text.tag_lower("passed", "hidden")
-        self.text.tag_lower("failed_message", "hidden")
         # get the block start and end of the 'elected' test case
         block_start, block_end = self._get_block("insert")
         # get if the block is hidden or not
@@ -446,8 +477,6 @@ class Steps(tk.Frame):
         if next_hidden:
             # make the block visible again
             self.text.tag_remove("hidden", block_start, block_end + "- 1 char")
-            self.text.tag_raise("passed", "hidden")
-            self.text.tag_raise("failed_message", "hidden")
         else:
             # hide the block
             self.text.tag_add("hidden", block_start, block_end + "- 1 char")
