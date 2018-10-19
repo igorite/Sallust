@@ -1,6 +1,7 @@
 import tkinter as tk
 from datetime import datetime
 from tkinter.font import Font
+import Constants
 
 
 def _parse_time(time):
@@ -36,6 +37,7 @@ class Steps(tk.Frame):
         self.time_start = datetime.now()
         self.error_button_state = False
         self.passed_button_state = False
+        self.collapsed = False
         self.text_font = Font(family="Verdana", size=12)
         self.header_font = Font(family="Verdana", size=12)
         # Frame creation methods
@@ -47,77 +49,100 @@ class Steps(tk.Frame):
         and the navigation of the search bar.
         """
         # Create option Bar
-        self.option_bar = tk.Frame(self, bg=self.controller.dark_color)
+        self.option_bar = tk.Frame(self, bg=Constants.dark_color)
         self.option_bar.pack(fill=tk.X)
 
         # Create option bar elements
         self.passed_button = tk.Checkbutton(self.option_bar,
-                                            text="Hide passed",
-                                            bd=2,
+                                            image=Constants.image_ok,
+                                            bd=1,
                                             relief=tk.RIDGE,
                                             overrelief=tk.RIDGE,
                                             command=lambda: self.hide_passed(),
-                                            font=self.text_font,
+                                            font=Constants.text_font(),
                                             indicatoron=False,
-                                            bg=self.controller.light_color,
+                                            bg=Constants.light_color,
                                             fg="White",
-                                            selectcolor="#444d57")
+                                            selectcolor=Constants.ultra_light_color)
 
         self.error_button = tk.Checkbutton(self.option_bar,
-                                           text="Hide error message",
-                                           bd=2,
+                                           image=Constants.image_fail,
+                                           bd=1,
                                            relief=tk.RIDGE,
                                            overrelief=tk.RIDGE,
                                            command=lambda: self.hide_error_message(),
-                                           font=self.text_font,
+                                           font=Constants.text_font(),
                                            indicatoron=False,
-                                           bg=self.controller.light_color,
+                                           bg=Constants.light_color,
                                            fg="White",
-                                           selectcolor="#444d57")
+                                           selectcolor=Constants.ultra_light_color)
+
+        self.collapse_button = tk.Checkbutton(self.option_bar,
+                                              image=Constants.image_collapse,
+                                              bd=1,
+                                              relief=tk.RIDGE,
+                                              overrelief=tk.RIDGE,
+                                              command=lambda: self.collapse_all(),
+                                              font=Constants.text_font(),
+                                              indicatoron=False,
+                                              bg=Constants.light_color,
+                                              fg="White",
+                                              selectcolor=Constants.ultra_light_color)
+
+        self.search_bar_frame = tk.Frame(self.option_bar, bg=Constants.dark_color)
+        self.search_bar_frame.grid(row=0, column=4)
 
         self.validator = (self.register(self.search), '%P')
 
-        self.search_bar = tk.Entry(self.option_bar,
+        self.search_bar_label = tk.Label(self.search_bar_frame,
+                                         text="Search:",
+                                         font=self.text_font,
+                                         bg=Constants.dark_color,
+                                         fg=Constants.text_color)
+        self.search_bar = tk.Entry(self.search_bar_frame,
                                    text="Search",
                                    fg="White",
                                    font=self.text_font,
-                                   width=25,
-                                   bg=self.controller.dark_color,
+                                   width=28,
+                                   bg=Constants.light_color,
                                    validate="key",
                                    validatecommand=self.validator)
 
-        self.search_next_button = tk.Button(self.option_bar,
+        self.search_next_button = tk.Button(self.search_bar_frame,
                                             text=">",
-                                            font=self.text_font,
+                                            font=Constants.text_font(),
                                             bd=1,
                                             relief=tk.RIDGE,
                                             overrelief=tk.RIDGE,
                                             fg="White",
-                                            bg=self.controller.light_color,
+                                            bg=Constants.light_color,
                                             command=lambda: self.search_next())
 
-        self.search_previous_button = tk.Button(self.option_bar,
+        self.search_previous_button = tk.Button(self.search_bar_frame,
                                                 text="<",
-                                                font=self.text_font,
+                                                font=Constants.text_font(),
                                                 bd=1,
                                                 relief=tk.RIDGE,
                                                 overrelief=tk.RIDGE,
                                                 fg="White",
-                                                bg=self.controller.light_color,
+                                                bg=Constants.light_color,
                                                 command=lambda: self.search_previous())
 
-        self.results_label = tk.Label(self.option_bar,
+        self.results_label = tk.Label(self.search_bar_frame,
                                       text="",
-                                      bg=self.controller.dark_color,
+                                      bg=Constants.dark_color,
                                       fg="White")
 
         # Grid option bar elements
         self.passed_button.grid(row=0, column=0, pady=5, padx=10)
         self.error_button.grid(row=0, column=1, pady=5, padx=10)
-        self.search_bar.grid(row=0, column=2)
-        self.results_label.grid(row=0, column=3)
-        self.search_previous_button.grid(row=0, column=4)
-        self.search_next_button.grid(row=0, column=5)
+        self.collapse_button.grid(row=0, column=2, pady=5, padx=10)
+        # Grid search bar elements
+        self.search_bar_label.grid(row=0, column=0, pady=10)
+        self.search_bar.grid(row=0, column=1, pady=5)
+        self.results_label.grid(row=0, column=2)
+        self.search_previous_button.grid(row=0, column=3)
+        self.search_next_button.grid(row=0, column=4)
         self.search_previous_button.grid_remove()
         self.search_next_button.grid_remove()
 
@@ -130,11 +155,11 @@ class Steps(tk.Frame):
                             fg="white",
                             wrap="word",
                             state="disabled",
-                            font=self.text_font,
-                            highlightbackground=self.controller.dark_color,
-                            highlightcolor=self.controller.dark_color,
+                            font=Constants.text_font(),
+                            highlightbackground=Constants.dark_color,
+                            highlightcolor=Constants.dark_color,
                             highlightthickness=10,
-                            bg=self.controller.light_color)
+                            bg=Constants.light_color)
         self.text.pack(expand=1, fill="both")
         self.text.tag_bind("header", "<Double-1>", self._toggle_visibility)
 
@@ -146,19 +171,12 @@ class Steps(tk.Frame):
         # Create Tags of the text widget
         self.text.tag_configure("header",
                                 font=self.header_font,
-                                background=self.controller.medium_color,
+                                background=Constants.medium_color,
                                 foreground="white",
                                 spacing1=10,
                                 spacing3=10,
                                 borderwidth=0,
                                 relief=tk.RAISED)
-
-        self.text.tag_configure("failed_message",
-                                lmargin1=0,
-                                lmargin2=0,
-                                background="#8d3434",
-                                relief=tk.GROOVE,
-                                borderwidth=1)
 
         self.text.tag_configure("hidden",
                                 elide=True)
@@ -173,23 +191,21 @@ class Steps(tk.Frame):
         self.text.tag_configure("failed_message",
                                 lmargin1=0,
                                 lmargin2=0,
-                                background="#8d3434",
+                                background="#4b1410",
                                 relief=tk.GROOVE,
                                 borderwidth=1)
-        self.text.tag_configure("header_hover",
-                                background="#c10a0a")
 
         self.text.tag_configure("passed_header",
-                                background="#22863a")
+                                background=Constants.green_color)
         self.text.tag_configure("failed_header",
-                                background="#450d0f")
+                                background=Constants.red_color)
 
         self.text.tag_configure("step_hover",
-                                background="#444d57")
+                                background=Constants.ultra_light_color)
         self.text.tag_configure("failed_hover",
-                                background="#8b1414")
+                                background=Constants.light_red_color)
         self.text.tag_configure("passed_hover",
-                                background="#1f6331")
+                                background=Constants.light_green_color)
 
         self.text.tag_bind("passed", "<Motion>", self.step_hover)
         self.text.tag_bind("failed", "<Motion>", self.step_hover)
@@ -200,6 +216,10 @@ class Steps(tk.Frame):
         self.text.tag_lower("failed_message", "hidden")
         self.text.tag_raise("step_hover", "passed")
         self.text.tag_raise("failed_hover", "failed_header")
+        self.text.tag_raise("selected", "failed_hover")
+        self.text.tag_raise("selected", "passed_hover")
+        self.text.tag_raise("selected", "failed_header")
+        self.text.tag_raise("selected", "passed_header")
     #
     # WRITE FUNCTIONS
     #
@@ -238,7 +258,7 @@ class Steps(tk.Frame):
         self.test_name_index = self.text.index("end") + "-1 lines"
 
         # Add new test case info
-        self.text.image_create(self.test_name_index, image=self.controller.image_run_test, pady=0)
+        self.text.image_create(self.test_name_index, image=Constants.image_run_test, pady=0)
         self.text.configure(state="normal")
         self.text.insert("end", " " + self.test_name_label + "\n", "header")
         self.text.configure(state="disabled")
@@ -267,7 +287,7 @@ class Steps(tk.Frame):
         # add step info
         self.text.config(state="normal")
         image_index = self.text.index("end") + "-1 lines"
-        self.text.image_create("end", image=self.controller.image_ok)
+        self.text.image_create("end", image=Constants.image_ok)
         self.text.tag_add("passed", image_index, image_index + "+1 char")
         self.text.insert("end", "%s %s \n" % (time, message), "passed")
         self.text.config(state="disabled")
@@ -296,7 +316,7 @@ class Steps(tk.Frame):
         # add step info
         self.text.config(state="normal")
         image_index = self.text.index("end") + "-1 lines"
-        self.text.image_create("end", image=self.controller.image_fail)
+        self.text.image_create("end", image=Constants.image_fail)
         self.text.tag_add("failed", image_index, image_index + "+1 char")
         self.text.insert("end", "%s  %s \n" % (time, message), "failed")
         # if there is no error message print consequently
@@ -323,7 +343,7 @@ class Steps(tk.Frame):
             self.text.insert(self.test_name_index,
                              " ", "header")
             self.text.image_create(str(self.test_name_index),
-                                   image=self.controller.image_ok,
+                                   image=Constants.image_ok,
                                    pady=0)
             self.text.tag_add("passed",
                               str(self.test_name_index),
@@ -347,7 +367,7 @@ class Steps(tk.Frame):
                              " ", "header")
 
             self.text.image_create(self.test_name_index,
-                                   image=self.controller.image_fail,
+                                   image=Constants.image_fail,
                                    pady=0)
 
             self.text.tag_add("failed_header",
@@ -367,6 +387,10 @@ class Steps(tk.Frame):
     #
     # UTILITY FUNCTIONS
     #
+    def clear_text(self):
+        self.text.configure(state="normal")
+        self.text.delete("1.0", "end")
+        self.text.configure(state="disabled")
 
     def search(self, search_value):
         """Search in the text widget if there are any coincidences to the given value. If they are then select
@@ -380,9 +404,13 @@ class Steps(tk.Frame):
         self.text.tag_remove("selected", "1.0", "end")
         # raise selected tag in order to be shown
         self.text.tag_raise("selected", "failed_message")
+        self.text.tag_raise("selected", "failed_hover")
+        self.text.tag_raise("selected", "passed_hover")
+        self.text.tag_raise("selected", "failed_header")
+        self.text.tag_raise("selected", "passed_header")
         # if none value is searched don't search
         if search_value == "":
-            self.results_label.configure(text=" No results")
+            self.results_label.configure(text="")
             # hide navigation search bar buttons
             self.search_next_button.grid_remove()
             self.search_previous_button.grid_remove()
@@ -427,6 +455,7 @@ class Steps(tk.Frame):
 
     def search_next(self):
         """Scroll to the next searched coincidence of the text widget"""
+        self.search(self.search_bar.get())
         next_index = self.search_visited
         # check that the next index is inside the list
         if next_index < len(self.search_indexes):
@@ -436,6 +465,7 @@ class Steps(tk.Frame):
 
     def search_previous(self):
         """Scroll to the previous searched coincidence of the text widget"""
+        self.search(self.search_bar.get())
         previous_index = self.search_visited - 2
         # check that the previous_index is in range
         if previous_index >= 0:
@@ -444,6 +474,28 @@ class Steps(tk.Frame):
             self.search_visited -= 1
             # change the text to display the right index
             self.results_label.configure(text="%s of %s results" % (str(self.search_visited), len(self.search_indexes)))
+
+    def collapse_all(self):
+        """ If steps are collapsed then show all collapsed text, Otherwise collapse all steps"""
+        # Show all collapsed steps
+        self.text.tag_remove("hidden", "1.0", "end")
+        # If was collapsed then do nothing more
+        if self.collapsed:
+            self.collapsed = False
+            pass
+        # if wasn't collapsed then collapse all
+        else:
+            index = 1.0
+            # for the number of test case there are
+            for i in range(len(self.controller.data_tests)):
+                # collapse the given test case
+                self._toggle_visibility(None, str(index))
+                # get the start index of the next test case that is the end index of the current test case
+                start, end = self._get_block(str(index))
+                index = float(end)
+            # Set the variable
+            self.collapsed = True
+        self.search(self.search_bar.get())
 
     def hide_error_message(self):
         """Hide all the error messages of the text widget if they are visible.
@@ -467,11 +519,10 @@ class Steps(tk.Frame):
             self.passed_button_state = False
             self.text.tag_configure("passed", elide=False)
 
-    def _toggle_visibility(self, event=None):
+    def _toggle_visibility(self, event=None, position="insert"):
         """ hide or show the steps of the 'selected' test case """
-
         # get the block start and end of the 'elected' test case
-        block_start, block_end = self._get_block("insert")
+        block_start, block_end = self._get_block(position)
         # get if the block is hidden or not
         next_hidden = self.text.tag_nextrange("hidden", block_start, block_end)
         if next_hidden:
@@ -480,6 +531,7 @@ class Steps(tk.Frame):
         else:
             # hide the block
             self.text.tag_add("hidden", block_start, block_end + "- 1 char")
+        self.search(self.search_bar.get())
 
     def _get_block(self, index):
         """return indices after header, to next header or EOF

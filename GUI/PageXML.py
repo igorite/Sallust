@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter.font import Font
-from natsort import natsorted, ns
+from natsort import natsorted
+import Constants
 
 
 class PageXML(tk.Frame):
@@ -9,7 +10,7 @@ class PageXML(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.configure(bg=controller.medium_color)
+        self.configure(bg=Constants.medium_color)
         self.search_indexes = []
         text_font = Font(family="Verdana",
                          size=12)
@@ -18,19 +19,19 @@ class PageXML(tk.Frame):
                             bd=0,
                             fg="white",
                             font=text_font,
-                            highlightbackground=controller.medium_color,
-                            highlightcolor=controller.medium_color,
+                            highlightbackground=Constants.dark_color,
+                            highlightcolor=Constants.dark_color,
                             highlightthickness=10,
-                            bg=controller.light_color)
+                            bg=Constants.light_color)
 
         self.text.pack(expand=1, fill="both")
 
         self.text.tag_configure("hover_line",
-                                background="#444d57")
+                                background=Constants.ultra_light_color)
         self.text.tag_configure("code_character",
-                                foreground="#ff943c")
+                                foreground=Constants.code_character_color)
         self.text.tag_configure("string_character",
-                                foreground="#5ab0ff")
+                                foreground=Constants.string_character_color)
 
         self.text.bind("<Motion>", self.hover_line)
         self.text.bind("<KeyRelease>", self.hover_line)
@@ -92,7 +93,9 @@ class PageXML(tk.Frame):
             try:
                 # search the value starting at 'search index' and returns the index if there is a coincidence
                 search_index = self.text.search(">", search_index, "end", nocase=1)
+                search_end = self.text.search("<", search_index, "end", nocase=1)
                 self.text.tag_add("code_character", search_index)
+                self.text.tag_add("string_character", search_index+"+ 1 char", search_end)
             except Exception:
                 pass
 
@@ -100,16 +103,3 @@ class PageXML(tk.Frame):
             search_index = search_index + "+ 1 char"
         # tag the coincidences of the search as selected
         search_index = "1.0"
-
-"""
-        while search_index != "+ 1 char":
-            try:
-                # search the value starting at 'search index' and returns the index if there is a coincidence
-                search_index = self.text.search('"', search_index, "end", nocase=1)
-                search_index_end = self.text.search('"', search_index+"+1 char", "end", nocase=1)
-                self.text.tag_add("string_character", search_index, search_index_end + "+ 1 char ")
-                search_index = search_index_end
-            except Exception:
-                pass
-            search_index = search_index + "+ 1 char"
-"""
