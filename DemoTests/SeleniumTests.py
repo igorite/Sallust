@@ -24,7 +24,6 @@ class FirstResult(Tc.TestCase):
         first_link = self.driver.find_element_by_xpath('//*[@id="rso"]/div[1]/div/div/div/div/div[1]/a')
         link_href = first_link.get_attribute("href")
         self.driver.get(link_href)
-        print("HOLA")
 
     def test_finish(self):
         """Close the browser"""

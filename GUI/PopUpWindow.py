@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
-from tkinter.font import Font
 from Tools.LoadXML import LoadXML
+import Constants
 
 
 class LoadModuleWindow(tk.Toplevel):
@@ -15,7 +15,7 @@ class LoadModuleWindow(tk.Toplevel):
         self.overrideredirect(1)
         self.attributes('-topmost', True)
         self.geometry("400x130+%d+%d" % (self.winfo_screenwidth() * 0.4, self.winfo_screenheight() * 0.4))
-        self.configure(bg=self.controller.dark_color)
+        self.configure(bg=Constants.dark_color)
         self.grab_set()
 
         # Create the variables
@@ -31,8 +31,6 @@ class LoadModuleWindow(tk.Toplevel):
         self._offset_x = 0
         self._offset_y = 0
         self.path_string = ""
-        self.title_font = Font(family="Verdana", size=12)
-        self.text_font = Font(family="Verdana", size=12)
 
         # Init methods of the window
         self.create_top_bar()
@@ -43,21 +41,21 @@ class LoadModuleWindow(tk.Toplevel):
         """ Creates the top bar of the window, which includes the title and the close button"""
         # Create the elements of the top bar
         self.top_bar = tk.Frame(self,
-                                bg=self.controller.dark_color)
+                                bg=Constants.dark_color)
 
         self.close = tk.Button(self.top_bar,
                                text="X",
-                               font=self.title_font,
-                               bg=self.controller.dark_color,
-                               fg=self.controller.text_color,
+                               font=Constants.title_font(),
+                               bg=Constants.dark_color,
+                               fg=Constants.text_color,
                                bd=0,
                                command=lambda: self.destroy())
 
         self.label = tk.Label(self.top_bar,
                               text="",
-                              font=self.title_font,
-                              fg=self.controller.text_color,
-                              bg=self.controller.dark_color)
+                              font=Constants.title_font(),
+                              fg=Constants.text_color,
+                              bg=Constants.dark_color)
         # Pack the elements
         self.top_bar.pack(fill=tk.X, anchor="n")
         self.close.pack(side="right")
@@ -73,7 +71,7 @@ class LoadModuleWindow(tk.Toplevel):
         """" Create the main frame of the window and it's elements """
         # Create the main frame
         self.main_frame = tk.Frame(self,
-                                   bg=self.controller.light_color,
+                                   bg=Constants.light_color,
                                    bd=10)
 
         self.main_frame.pack(expand=1, fill="both", padx=3, pady=3)
@@ -85,19 +83,19 @@ class LoadModuleWindow(tk.Toplevel):
                                      bd=1,
                                      relief=tk.RIDGE,
                                      overrelief=tk.RIDGE,
-                                     fg=self.controller.text_color,
-                                     font=self.text_font,
-                                     bg=self.controller.button_color,)
+                                     fg=Constants.text_color,
+                                     font=Constants.text_font(),
+                                     bg=Constants.button_color,)
 
         self.entry = tk.Entry(self.main_frame,
-                              bg=self.controller.medium_color,
-                              width="33", font=self.title_font,
+                              bg=Constants.medium_color,
+                              width="33", font=Constants.title_font(),
                               textvariable=self.path_string,
-                              fg=self.controller.text_color)
+                              fg=Constants.text_color)
 
         self.error_label = tk.Label(self.main_frame,
                                     text="",
-                                    bg=self.controller.light_color,
+                                    bg=Constants.light_color,
                                     fg="red")
 
         self.import_button = tk.Button(self.main_frame,
@@ -105,14 +103,14 @@ class LoadModuleWindow(tk.Toplevel):
                                        bd=1,
                                        relief=tk.RIDGE,
                                        overrelief=tk.RIDGE,
-                                       font=self.text_font,
-                                       bg=self.controller.button_color,
-                                       fg=self.controller.text_color,
+                                       font=Constants.text_font(),
+                                       bg=Constants.button_color,
+                                       fg=Constants.text_color,
                                        command=lambda: self.module_import())
 
         # Grid elements
         self.entry.grid(row=0, column=0)
-        self.load_button.grid(row=0, column=3,padx=5)
+        self.load_button.grid(row=0, column=3, padx=5)
         self.error_label.grid(row=1, column=0)
         self.import_button.grid(row=3, column=0)
 
@@ -189,7 +187,7 @@ class PopUpLoadXML(tk.Toplevel):
         # Configure Window
         self.overrideredirect(1)
         self.attributes('-topmost', True)
-        self.configure(bg=self.controller.dark_color)
+        self.configure(bg=Constants.dark_color)
         self.geometry("400x130+%d+%d" % (self.winfo_screenwidth() * 0.4, self.winfo_screenheight() * 0.4))
         # Create the variables
         self.top_bar = None
@@ -204,8 +202,6 @@ class PopUpLoadXML(tk.Toplevel):
         self.import_button = None
         self._offset_x = 0
         self._offset_y = 0
-        self.title_font = Font(family="Verdana", size=12)
-        self.text_font = Font(family="Verdana", size=12)
 
         # Init window methods
         self.create_top_bar()
@@ -216,21 +212,21 @@ class PopUpLoadXML(tk.Toplevel):
         """ Creates the top bar of the window, which includes the title and the close button"""
         # Create the elements of the top bar
         self.top_bar = tk.Frame(self,
-                                bg=self.controller.dark_color)
+                                bg=Constants.dark_color)
 
         self.close = tk.Button(self.top_bar,
                                text="X",
-                               font=self.title_font,
-                               bg=self.controller.dark_color,
-                               fg=self.controller.text_color,
+                               font=Constants.title_font(),
+                               bg=Constants.dark_color,
+                               fg=Constants.text_color,
                                bd=0,
                                command=lambda: self.destroy())
 
         self.label = tk.Label(self.top_bar,
                               text="",
-                              font=self.title_font,
-                              fg=self.controller.text_color,
-                              bg=self.controller.dark_color)
+                              font=Constants.title_font(),
+                              fg=Constants.text_color,
+                              bg=Constants.dark_color)
 
         # Pack the elements
         self.top_bar.pack(fill=tk.X, anchor="n")
@@ -246,37 +242,37 @@ class PopUpLoadXML(tk.Toplevel):
     def create_main_frame(self):
 
         # Create the main frame of the window
-        self.main_frame = tk.Frame(self, bg=self.controller.light_color, bd=10)
+        self.main_frame = tk.Frame(self, bg=Constants.light_color, bd=10)
         self.main_frame.pack(expand=1, fill="both", padx=3, pady=3)
 
         # Create the elements of the main frame
         self.load_button = tk.Button(self.main_frame,
                                      command=lambda: self.file_manager(),
                                      text="file",
-                                     fg=self.controller.text_color,
-                                     font=self.text_font,
-                                     bg=self.controller.button_color,
+                                     fg=Constants.text_color,
+                                     font=Constants.text_font(),
+                                     bg=Constants.button_color,
                                      bd=1,
                                      relief=tk.RIDGE,
                                      overrelief=tk.RIDGE,)
 
         self.entry = tk.Entry(self.main_frame,
-                              bg=self.controller.medium_color,
+                              bg=Constants.medium_color,
                               width="33",
-                              font=self.title_font,
+                              font=Constants.title_font(),
                               textvariable=self.path_string,
-                              fg=self.controller.text_color)
+                              fg=Constants.text_color)
 
         self.error_label = tk.Label(self.main_frame,
                                     text="",
-                                    bg=self.controller.light_color,
+                                    bg=Constants.light_color,
                                     fg="red")
 
         self.import_button = tk.Button(self.main_frame,
                                        text="load module",
-                                       font=self.text_font,
-                                       bg=self.controller.button_color,
-                                       fg=self.controller.text_color,
+                                       font=Constants.text_font(),
+                                       bg=Constants.button_color,
+                                       fg=Constants.text_color,
                                        bd=1,
                                        relief=tk.RIDGE,
                                        overrelief=tk.RIDGE,
@@ -327,6 +323,7 @@ class PopUpLoadXML(tk.Toplevel):
         load = LoadXML(self.controller, self.steps)
         try:
             # Read the XML File
+            self.controller.clear_all()
             load.load_file(self.entry.get())
         except FileNotFoundError:
             # Show a message error
