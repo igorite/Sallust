@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
         name='Sallust',
-        version='0.13',
+        version='0.15',
         packages=['Sallust', 'Sallust.GUI', 'Sallust.Tools'],
         url='https://github.com/socisomer/Sallust',
         license='GNU General Public License v3.0',
