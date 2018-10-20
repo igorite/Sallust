@@ -3,6 +3,8 @@ import threading
 from datetime import datetime
 from lxml import etree as et
 import TestCase
+import sys
+import traceback
 
 
 def _get_class_methods(cls):
@@ -52,6 +54,7 @@ def _add_step_time_xml(step, time):
     """
     element = et.SubElement(step, "time")
     element.text = time
+    return element
 
 
 def _add_step_description(step, description):
@@ -63,6 +66,7 @@ def _add_step_description(step, description):
     """
     element = et.SubElement(step, "description")
     element.text = description
+    return element
 
 
 def _add_step_status(step, status):
@@ -74,17 +78,53 @@ def _add_step_status(step, status):
     """
     element = et.SubElement(step, "status")
     element.text = status
+    return element
 
 
-def _add_step_error_message(step, error_message):
+def _add_step_error(error):
     """Add a error sub element with it's value to the given step
-    :type step: (ElementTree)
-    :type error_message: (String)
+    :type error: (ElementTree)
 
     :return: (ElementTree) the element which has been added
     """
-    element = et.SubElement(step, "error")
-    element.text = error_message
+    element = et.SubElement(error, "error")
+    return element
+
+
+def _add_error_function(error, func):
+    """Add a error sub element with it's value to the given step
+       :type error: (ElementTree)
+       :type func: (String)
+
+       :return: (ElementTree) the element which has been added
+       """
+    element = et.SubElement(error, "function")
+    element.text = func
+    return element
+
+
+def _add_error_line(error, line):
+    """Add a error sub element with it's value to the given step
+       :type error: (ElementTree)
+       :type line: (String)
+
+       :return: (ElementTree) the element which has been added
+       """
+    element = et.SubElement(error, "line")
+    element.text = line
+    return element
+
+
+def _add_error_message(error, message):
+    """Add a error sub element with it's value to the given step
+       :type error: (ElementTree)
+       :type message: (String)
+
+       :return: (ElementTree) the element which has been added
+       """
+    element = et.SubElement(error, "message")
+    element.text = message
+    return element
 
 
 def _get_datetime():
@@ -152,57 +192,128 @@ class Process(threading.Thread):
         self._modules_classes.sort(key=lambda x: x[1])
 
     # noinspection PyBroadException
+
     def new_execute_methods(self):
+        """Execute all the test case methods, send the results data to the Queue and save the data to a XML file"""
+
+        # Get the total number of test case to run
         n_test_case = len(self._modules_classes)
+        # Send the number of test case to the Queue
         self.queue.put(["n_test_case", n_test_case])
-        for i in range(len(self._modules_classes)):
+
+        # do a loop with one iteration per test case
+        for i in range(n_test_case):
+            # initialize the class of the test case
             try:
                 cls = self._modules_classes[i][0]()
             except Exception:
+                # If and error during loading the class of test case, then jump to the next test case
                 continue
-            else:
-                pass
+            # get the Start Time of the test case
             self.time_start = datetime.now()
+            # Reset the step order variable
             step_order = 1
+            # get the name of the test case
             cls_name = cls.get_name()
+            # if there is no name of test case assign a name of 'Test' plus the test case order number
             if cls_name is None:
                 cls_name = "Test " + str(i+1)
+            # Send the signal of a start of a test case to the Queue
             self.queue.put(["start", cls_name])
+            # Add a test case element to the XML file
             parent_xml = self._add_test_xml(cls_name)
+            # call a function that returns a list of all test_methods of the class and it's line position
             class_methods = _get_class_methods(cls)
+
+            # do a loop with one iteration per test method of the test case
             for method in class_methods:
+
+                # get the reference to the method
                 func = cls.__getattribute__(method[0])
+                # get the __doc__ description of the method
                 description = inspect.getdoc(func)
+                # get the source lines of the method
+                lines = inspect.getsource(func)
+                # set the variable that stores the line where a function fails to None
+                function_error_line = None
+                # If there is no description of the test assign a default description
                 if description is None:
                     description = "There is no description of this step"
+
+                # try execute the method
                 try:
                     func()
+                # If fail get the exception info, send the info and save it to XML
                 except Exception as e:
+
+                    # get the end time of the step
                     now = datetime.now() - self.time_start
                     elapsed_time = _parse_time(now)
-                    self.queue.put(["fail", description, str(e)])
+
+                    # Create a list to store the exception info
+                    trace = []
+                    # get the exception info
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    # try extract the exception info and get the line where the exception happened
+                    try:
+                        # Create a TracebackException object and store all the data to the list
+                        for line in traceback.TracebackException(
+                                type(exc_value), exc_value, exc_traceback, limit=None).format(chain=True):
+                                trace.append(line)
+                        # get the string that contains the data of where the exception happened
+                        error_string = trace[2]
+                        # get the index start and end position of the line number on the string
+                        error_string_index = error_string.find(", line")
+                        error_string_index_end = error_string.find(",", error_string_index + 1)
+                        # get the line number
+                        error_line = error_string[error_string_index + 7:error_string_index_end]
+                        # get the line number of the error within the function
+                        function_error_line = float(error_line) - float(method[1])
+                    except Exception:
+                        pass
+
+                    # for safety reasons delete the objects of the exception
+                    del exc_type, exc_value, exc_traceback, trace
+
+                    # Send all the data to the Queue
+                    self.queue.put(["fail", description, str(e), function_error_line, str(lines)])
+
+                    # Create a step element of XML
                     step = _add_step_xml(parent_xml, step_order)
+                    # Add all info to the step element
                     _add_step_status(step, "failed")
                     _add_step_time_xml(step, elapsed_time)
                     _add_step_description(step, description)
+                    error = _add_step_error(step)
+                    _add_error_function(error, lines)
+                    _add_error_line(error, str(function_error_line))
                     if str(e) == "":
-                        _add_step_error_message(step, "¯\_(ツ)_/¯")
+                        _add_error_message(error, "There is no error message")
                     else:
-                        _add_step_error_message(step, str(e))
+                        _add_error_message(error, str(e))
+                    # Increase the step order variable
                     step_order += 1
+
                 else:
+                    # Get the end time of the step
                     now = datetime.now() - self.time_start
                     elapsed_time = _parse_time(now)
+                    # Send the info to the Queue
                     self.queue.put(["pass", description])
-                    step = _add_step_xml(parent_xml, step_order,)
+                    # Create a step element of XML
+                    step = _add_step_xml(parent_xml, step_order)
+                    # Add all info to the step element
                     _add_step_status(step, "passed")
                     _add_step_time_xml(step, elapsed_time)
                     _add_step_description(step, description)
-                    _add_step_error_message(step, "")
-
+                    _add_step_error(step)
+                    # Increase the step order variable
                     step_order += 1
+            # Send the signal to the Queue that the test case has finished
             self.queue.put(["end", cls.get_name()])
-            self._save_xml()
+
+        # Save the XML file
+        self._save_xml()
 
     def _add_test_xml(self, name):
         """Create a XML sub element of 'test_run' with the tag'testcase' and with the attribute 'name' which contains
