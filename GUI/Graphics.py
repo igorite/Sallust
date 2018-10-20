@@ -34,7 +34,7 @@ class Graphics(tk.Frame):
         self.passed = None
         self.failed = None
         self.labels = "Passed", "Failed"
-        self.colors = "#22863a", Constants.red_color
+        self.colors = Constants.green_color, Constants.red_color
         font = {'family': 'Verdana',
                 'weight': 'bold',
                 'size': 8}

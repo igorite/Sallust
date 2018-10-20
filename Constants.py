@@ -13,6 +13,7 @@ button_color = "#303e58"
 medium_color = "#303e58"
 dark_color = "#21293c"
 text_color = "white"
+dark_red_color = "#6f2121"
 red_color = "#922e2e"
 light_red_color = "#bd3838"
 green_color = "#22863a"
@@ -21,9 +22,10 @@ ultra_light_color = "#5c7490"
 white = "#ffffff"
 blue_color = "#0b5cb5"
 code_character_color = "#ff943c"
-string_character_color = "#7bd67e"
+string_character_color = "#6A8759"
+error_line = "#6b3329"
+purple = "#94558D"
 
-# Images
 # IMAGES
 image_icon = None
 image_fail = None
@@ -37,6 +39,11 @@ image_running = None
 image_xml = None
 image_load = None
 image_collapse = None
+image_collapse_off = None
+image_hide_ok = None
+image_hide_error = None
+image_hide_ok_off = None
+image_hide_error_off = None
 icon = None
 steps_icon = None
 graphs_icon = None
@@ -47,8 +54,8 @@ current_xml = None
 
 
 def title_font():
-    return Font(family="Verdana", size=12)
+    return Font(family="Verdana", size=12,)
 
 
-def text_font(size=12):
-    return Font(family="Verdana", size=size)
+def text_font(size=12, weight="normal"):
+    return Font(family="Verdana", size=size, weight=weight)

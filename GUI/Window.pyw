@@ -27,6 +27,7 @@ class Window(tk.Tk):
         self.test_passed = 0
         self.test_failed = 0
         self.test_not_run = 1
+        self.total_steps = 0
         self.frames = []
         self.process = None
         self.running = True
@@ -80,7 +81,8 @@ class Window(tk.Tk):
     def update_all(self):
         self.get_frame("PageXML").create_xml()
         self.get_frame("Graphics").update_graphics()
-        print(self.data_tests)
+        self.get_frame("Steps").update_all()
+
 
     def load_steps(self):
         self.show_frame("Steps")
@@ -275,6 +277,11 @@ class Window(tk.Tk):
         Constants.image_xml = ImageTk.PhotoImage(Image.open("GUI/img/xml_icon.png"))
         Constants.image_load = ImageTk.PhotoImage(Image.open("GUI/img/load.png"))
         Constants.image_collapse = ImageTk.PhotoImage(Image.open("GUI/img/collapse_icon.png"))
+        Constants.image_hide_error = ImageTk.PhotoImage(Image.open("GUI/img/button_error.png"))
+        Constants.image_hide_ok = ImageTk.PhotoImage(Image.open("GUI/img/button_ok.png"))
+        Constants.image_collapse_off = ImageTk.PhotoImage(Image.open("GUI/img/collapse_icon_off.png"))
+        Constants.image_hide_error_off = ImageTk.PhotoImage(Image.open("GUI/img/button_error_off.png"))
+        Constants.image_hide_ok_off = ImageTk.PhotoImage(Image.open("GUI/img/button_ok_off.png"))
 
     def get_frame(self, frame_name):
         return self.frames[frame_name]
@@ -304,7 +311,7 @@ class Window(tk.Tk):
             if msg[0] == "pass":
                 steps.step_pass(msg[1])
             if msg[0] == "fail":
-                steps.step_fail(msg[1], msg[2])
+                steps.step_fail(msg[1], msg[2],msg[4], error_line=msg[3])
             if msg[0] == "xml_name":
                 self.current_xml = msg[1]
 

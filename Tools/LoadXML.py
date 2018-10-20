@@ -22,10 +22,17 @@ class LoadXML:
                 status = elem[0]
                 time = elem[1]
                 description = elem[2]
-                error_message = elem[3]
                 if status.text == "passed":
-                    self.steps.step_pass(description.text,time.text)
+                    self.steps.step_pass(description.text, time.text)
                 if status.text == "failed":
-                    self.steps.step_fail(description.text, str(error_message.text),time.text)
+                    error_element = elem[3]
+                    func = error_element[0]
+                    func_error_line = error_element[1]
+                    func_error_message = error_element[2]
+                    self.steps.step_fail(description.text,
+                                         error_message=str(func_error_message.text),
+                                         lines=str(func.text),
+                                         error_line=str(func_error_line.text),
+                                         time=time.text)
 
             self.steps.test_finish()
