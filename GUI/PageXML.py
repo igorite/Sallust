@@ -10,10 +10,11 @@ class PageXML(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.configure(bg=Constants.medium_color)
+        self.configure(bg=Constants.dark_color)
         self.search_indexes = []
         text_font = Font(family="Verdana",
                          size=12)
+
         self.text = tk.Text(self,
                             cursor="arrow",
                             bd=0,
@@ -22,7 +23,7 @@ class PageXML(tk.Frame):
                             highlightbackground=Constants.dark_color,
                             highlightcolor=Constants.dark_color,
                             highlightthickness=10,
-                            bg=Constants.light_color)
+                            bg=Constants.medium_color)
 
         self.text.pack(expand=1, fill="both")
 
