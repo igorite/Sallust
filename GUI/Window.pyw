@@ -3,22 +3,22 @@ import gc
 import importlib
 import queue
 import sys
+import inspect
+from datetime import datetime
+from lxml import etree as et
 from PIL import Image, ImageTk
 # BUILT IN
 import tkinter as tk
 from tkinter import font as tk_font
 
 # PACKAGE IMPORTS
-from GUI import PageXML, Graphics, PopUpWindow, Steps
-from Tools import ExecuteMethods
+from GUI import PageXML, Graphics, PopUpWindow, Steps, DataTable, Editor
+from Tools import ExecuteMethods, ResultsPDF
 import Constants
 
 
 class Window(tk.Tk):
-
     running = True
-    # COLORS
-
     data_tests = []
 
     def __init__(self, *args, **kwargs):
@@ -38,11 +38,13 @@ class Window(tk.Tk):
         self.total_test_case = 0
         self.current_test_number = 0
         self.current_xml = None
+        self.loaded_xml = False
         # BUTTONS
         self.button_steps = None
         self.button_graphics = None
         self.button_xml = None
         self.button_run = None
+        self.console_send = None
         self.queue = queue.Queue()
         # INIT METHODS
         self.load_images()
@@ -51,7 +53,7 @@ class Window(tk.Tk):
         self._create_container()
         self.button_run.configure(state="normal")
         self.deiconify()
-        self.geometry("710x%d+%d+0" % (Constants.screen_height*0.95, self.winfo_screenwidth() - 720))
+        self.geometry("710x%d+%d+0" % (self.winfo_screenheight() * 0.94, (self.winfo_screenwidth() - 710) * 0.5))
 
     def show_frame(self, page_name):
         """Show a frame for the given page name"""
@@ -82,7 +84,8 @@ class Window(tk.Tk):
         self.get_frame("PageXML").create_xml()
         self.get_frame("Graphics").update_graphics()
         self.get_frame("Steps").update_all()
-
+        self.get_frame("DataTable").update_all()
+        self.get_frame("Editor").update_all()
 
     def load_steps(self):
         self.show_frame("Steps")
@@ -116,8 +119,7 @@ class Window(tk.Tk):
         self.focus_get()
 
         self.frames = {}
-        for F in (Steps.Steps, Graphics.Graphics, PageXML.PageXML):
-
+        for F in (Steps.Steps, Graphics.Graphics, PageXML.PageXML, DataTable.DataTable, Editor.Editor):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -130,11 +132,12 @@ class Window(tk.Tk):
         self.show_frame("Steps")
 
     def _create_window(self):
+
         self.title(Constants.window_title)
         self.wm_iconbitmap("GUI/img/icon.ico")
         # self.attributes('-topmost', True)
         self.screen_height = self.winfo_screenheight() * 0.96
-        self.geometry("700x%d+%d+0" % (Constants.screen_height, self.winfo_screenwidth()-710))
+        self.geometry("700x%d+%d+0" % (Constants.screen_height, self.winfo_screenwidth() - 710))
         self.config(bg=Constants.dark_color)
         self.focus_get()
 
@@ -176,6 +179,28 @@ class Window(tk.Tk):
                                          bg=Constants.button_color,
                                          command=lambda: self.load_graphics())
 
+        self.button_editor = tk.Button(menu,
+                                       text="Editor",
+                                       image=Constants.graphs_icon,
+                                       compound="left",
+                                       height=30,
+                                       font=Constants.text_font(),
+                                       fg="White",
+                                       bd=0,
+                                       bg=Constants.button_color,
+                                       command=lambda: self.load_editor())
+
+        self.button_table = tk.Button(menu,
+                                      text="Table",
+                                      image=Constants.graphs_icon,
+                                      compound="left",
+                                      height=30,
+                                      font=Constants.text_font(),
+                                      fg="White",
+                                      bd=0,
+                                      bg=Constants.button_color,
+                                      command=lambda: self.load_table())
+
         self.button_xml = tk.Button(menu,
                                     text="XML",
                                     image=Constants.image_xml,
@@ -209,21 +234,35 @@ class Window(tk.Tk):
                                          bd=0,
                                          bg=Constants.button_color,
                                          command=lambda: self.load_xml_button())
+
+        self.button_PDF = tk.Button(menu,
+                                       text="PDF",
+                                       image=Constants.graphs_icon,
+                                       compound="left",
+                                       height=30,
+                                       font=Constants.text_font(),
+                                       fg="White",
+                                       bd=0,
+                                       bg=Constants.button_color,
+                                       command=lambda: self.create_pdf())
         menu.grid_propagate(1)
 
         self.button_steps.grid(row=0, column=2, padx=2)
         self.button_run.grid(row=0, column=1, padx=2)
         self.button_load_xml.grid(row=0, column=0, padx=2)
+        self.button_editor.grid(row=0, column=3, padx=2)
+        self.button_table.grid(row=0, column=4, padx=2)
+
         self.button_run.bind("<Enter>", self.on_enter)
         self.button_run.bind("<Leave>", self.on_leave)
 
     def on_enter(self, event=None):
         if self.thread_running is False:
-            self.button_run['background'] = "#0b5cb5"
+            self.button_run['background'] = Constants.blue_color
 
     def on_leave(self, event=None):
         if self.thread_running is False:
-            self.button_run['background'] = "#1eab1e"
+            self.button_run['background'] = Constants.green_color
 
     def update_run_button(self):
         if self.total_test_case > len(self.data_tests):
@@ -237,13 +276,24 @@ class Window(tk.Tk):
     def load_xml_button(self):
         PopUpWindow.PopUpLoadXML(self, self.get_frame("Steps"))
 
+    def load_editor(self):
+        self.show_frame("Editor")
+        self.get_frame("Editor").update_all()
+
+    def load_table(self):
+        self.show_frame("DataTable")
+        self.get_frame("DataTable").update_all()
+
     def run_test_button(self):
         pop_up = PopUpWindow.LoadModuleWindow(self)
         pop_up.set_file_path(str(self.run_module_path))
 
     def show_buttons(self):
-        self.button_graphics.grid(row=0, column=3, padx=2)
-        self.button_xml.grid(row=0, column=4, padx=2)
+        self.button_graphics.grid(row=0, column=5, padx=2)
+        self.button_xml.grid(row=0, column=6, padx=2)
+        self.button_editor.grid(row=0, column=3, padx=2)
+        self.button_table.grid(row=0, column=4, padx=2)
+        self.button_PDF.grid(row=0, column=7, padx=2)
 
     def run_test(self):
         self.clear_all()
@@ -282,6 +332,7 @@ class Window(tk.Tk):
         Constants.image_collapse_off = ImageTk.PhotoImage(Image.open("GUI/img/collapse_icon_off.png"))
         Constants.image_hide_error_off = ImageTk.PhotoImage(Image.open("GUI/img/button_error_off.png"))
         Constants.image_hide_ok_off = ImageTk.PhotoImage(Image.open("GUI/img/button_ok_off.png"))
+        Constants.image_save = ImageTk.PhotoImage(Image.open("GUI/img/button_save.png"))
 
     def get_frame(self, frame_name):
         return self.frames[frame_name]
@@ -289,6 +340,9 @@ class Window(tk.Tk):
     def update_run(self):
         self.update()
         self.update_idletasks()
+        if self.queue.empty():
+            self.after(1000, self.update_run)
+            return
         steps = self.get_frame("Steps")
         try:
             msg = self.queue.get()
@@ -296,8 +350,11 @@ class Window(tk.Tk):
                 self.total_test_case = msg[1]
                 self.update_run_button()
             if msg[0] == "finish_thread":
+                xml = msg[1]
+                self._add_console_xml(xml)
+                self._save_xml(xml)
                 Window.test_not_run = 0
-                self.button_run.configure(state="normal", text="Run Tests", bg=Constants.green_color)
+                self.button_run.configure(state="normal", bg=Constants.green_color)
                 self.thread_running = False
                 self.show_buttons()
                 self.update_all()
@@ -311,16 +368,47 @@ class Window(tk.Tk):
             if msg[0] == "pass":
                 steps.step_pass(msg[1])
             if msg[0] == "fail":
-                steps.step_fail(msg[1], msg[2],msg[4], error_line=msg[3])
+                steps.step_fail(msg[1], msg[2], msg[4], error_line=msg[3], error_line_module=msg[5])
             if msg[0] == "xml_name":
                 self.current_xml = msg[1]
+            if msg[0] == "console":
+                self.queue.put(["buffer", self.get_frame("Steps").get_buffer_value()])
 
         except queue.Empty:
-            self.after(0, self.update_run)
+            self.after(1500, self.update_run)
         finally:
             if self.running is False:
                 self.destroy()
                 sys.exit(0)
+
+    def _add_console_xml(self, xml):
+        parent = et.SubElement(xml, "console")
+        parent.text = self.get_frame("Steps").get_buffer_value()
+
+    def _save_xml(self, xml):
+        """Create a string of the XML element 'test_run' with a pretty format (indented and with end lines)
+        that later is writen in a XML file
+
+        :return: None"""
+        # Converts to string the 'xml' Element to string
+        xml_string = et.tostring(xml, encoding='UTF-8', xml_declaration=True, pretty_print=True)
+        # Replace the end of line with end of line that some programs can understand
+        xml_string.replace(b'\n', b'\r\n')
+        # Create a string with the name of the file
+        xml_name = "test_history/" + self._get_datetime() + ".xml"
+        # Create and write the XML data to the file
+        with open(xml_name, "wb") as f:
+            f.write(xml_string)
+            f.close()
+        # Add the filename to the Queue in order to be read by the main thread
+        self.current_xml = xml_name
+
+    def _get_datetime(self):
+        """Get the current date time and parse it to YYYY-MM-DD_hh-mm
+
+        :return: (string) the current time parsed as YYYY-MM-DD_hh-mm"""
+        time = str(datetime.now())
+        return time[:10] + "_" + time[11:13] + "-" + time[14:16]
 
     def set_module(self, path):
         spec = importlib.util.spec_from_file_location("testrun.case", path)
@@ -328,8 +416,19 @@ class Window(tk.Tk):
         spec.loader.exec_module(imported_module)
         sys.modules["testrun.case"] = imported_module
         self.run_module = imported_module
+        source_code = inspect.getsource(self.run_module)
         self.run_module_path = path
+        self.get_frame("Editor").update_text(source_code)
         self.run_test()
+
+    def create_pdf(self):
+        pdf = ResultsPDF.ResultsPDF()
+        pdf.alias_nb_pages()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.draw_report_data(self.run_module_path)
+        pdf.simple_table()
+        pdf.output("proba.pdf", "F")
 
 
 if __name__ == "__main__":
