@@ -21,10 +21,10 @@ light_green_color = "#2cb44d"
 ultra_light_color = "#5c7490"
 white = "#ffffff"
 blue_color = "#0b5cb5"
-code_character_color = "#ff943c"
-string_character_color = "#6A8759"
+code_character_color = "#e7791e"
+string_character_color = "#94ce15"
 error_line = "#6b3329"
-purple = "#94558D"
+purple = "#15ceb6"
 
 # IMAGES
 image_icon = None
@@ -36,6 +36,7 @@ image_fail_test = None
 image_run_test = None
 image_run = None
 image_running = None
+image_save = None
 image_xml = None
 image_load = None
 image_collapse = None
@@ -57,5 +58,5 @@ def title_font():
     return Font(family="Verdana", size=12,)
 
 
-def text_font(size=12, weight="normal"):
-    return Font(family="Verdana", size=size, weight=weight)
+def text_font(size=12, weight="normal", family="Verdana"):
+    return Font(family=family, size=size, weight=weight)
