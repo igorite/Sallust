@@ -14,7 +14,7 @@ class LoadXML:
             raise FileNotFoundError
         root = tree.getroot()
         self.controller.get_frame("PageXML").set_xml(et.tostring(root))
-        for i in range(len(root)):
+        for i in range(len(root)-1):
             test_case = root[i]
             self.steps.add_test_case(test_case.get("name"))
             for j in range(len(test_case)):
@@ -36,3 +36,8 @@ class LoadXML:
                                          time=time.text)
 
             self.steps.test_finish()
+        console = root[-1]
+        self.steps.write_console(console.text)
+        self.controller.loaded_xml = True
+
+        self.steps.text.see("1.0")
