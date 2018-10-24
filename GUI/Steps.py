@@ -1,7 +1,11 @@
 import tkinter as tk
 from datetime import datetime
 from GUI import ColorizeFunctions
+from natsort import natsorted
 import Constants
+import sys
+from io import StringIO
+import numpy as np
 
 
 def _parse_time(time):
@@ -39,14 +43,22 @@ class Steps(tk.Frame):
         self.error_button_state = False
         self.passed_button_state = False
         self.collapsed = False
+        self.console = None
+        self.console_frame = None
+        self.console_label = None
+        self.error_line_ref = []
+
+        sys.stdout = self.buffer = StringIO()
 
         # Frame creation methods
         self._create_option_bar()
         self._create_text_widget()
+        self.create_console()
         self.colorize = ColorizeFunctions.ColorizePythonFunctions(self)
 
     def _create_option_bar(self):
-        """Create the option bar of the window with it's elements, which contains the hide buttons, the search bar
+        """
+        Create the option bar of the window with it's elements, which contains the hide buttons, the search bar
         and the navigation of the search bar.
         """
         # Create option Bar
@@ -67,7 +79,6 @@ class Steps(tk.Frame):
         self.error_button = tk.Checkbutton(self.option_bar,
                                            image=Constants.image_hide_error,
                                            selectimage=Constants.image_hide_error_off,
-
                                            command=lambda: self.hide_error_message(),
                                            font=Constants.text_font(),
                                            indicatoron=False,
@@ -128,7 +139,6 @@ class Steps(tk.Frame):
                                       text="",
                                       bg=Constants.dark_color,
                                       fg="White")
-
         # Grid option bar elements
         self.passed_button.grid(row=0, column=0, pady=5, padx=10)
         self.error_button.grid(row=0, column=1, pady=5, padx=10)
@@ -142,10 +152,53 @@ class Steps(tk.Frame):
         self.search_previous_button.grid_remove()
         self.search_next_button.grid_remove()
 
+    def create_console(self):
+        self.console_frame = tk.Frame(self.panned, bg=Constants.dark_color)
+
+        self.console_label = tk.Label(self.console_frame,
+                                      text="Console:",
+                                      font=Constants.text_font(size=9),
+                                      bg=Constants.dark_color,
+                                      fg=Constants.text_color
+                                      )
+
+        self.console_label.pack(side="top", anchor="w")
+        self.console = tk.Text(self.console_frame, cursor="arrow",
+                               bd=0,
+                               fg="white",
+                               wrap="word",
+                               state="disabled",
+                               font=Constants.text_font(size=10, family="Courier"),
+                               highlightbackground=Constants.dark_color,
+                               highlightcolor=Constants.dark_color,
+                               highlightthickness=10,
+                               bg=Constants.medium_color)
+
+        self.console.pack(expand=1, fill="both", side=tk.BOTTOM)
+
+        self.panned.add(self.console_frame, height=100, minsize=150)
+
+    def get_buffer_value(self):
+        return self.buffer.getvalue()
+
+    def write_console(self, text=None):
+
+        self.console.configure(state="normal")
+        self.console.delete("1.0", "end")
+        if text is not None:
+            self.console.insert("end", text)
+        else:
+            self.console.insert("end", self.buffer.getvalue())
+        self.console.configure(state="disabled")
+        self.console.see("end")
+
     def _create_text_widget(self):
         """Creates and configure the text widget in which the data will be writen"""
         # Create Text Widget
-        self.text = tk.Text(self,
+        self.panned = tk.PanedWindow(self, bd=0, orient=tk.VERTICAL, bg=Constants.ultra_light_color, handlepad=300)
+        self.panned.pack(expand=1, fill="both")
+
+        self.text = tk.Text(self.panned,
                             cursor="arrow",
                             bd=0,
                             fg="white",
@@ -157,8 +210,7 @@ class Steps(tk.Frame):
                             highlightthickness=10,
                             bg=Constants.light_color)
 
-        self.text.pack(expand=1, fill="both")
-        self.text.unbind('<Double-1>')
+        self.panned.add(self.text, sticky="nwes", minsize=400, height=2000)
         self.text.tag_bind("header", "<Double-1>", self._toggle_visibility)
 
         # Create text widget Scrollbar
@@ -178,7 +230,6 @@ class Steps(tk.Frame):
 
         self.text.tag_configure("hidden",
                                 elide=True)
-
         self.text.tag_configure("selected",
                                 background="Blue")
 
@@ -203,6 +254,8 @@ class Steps(tk.Frame):
 
         self.text.tag_configure("failed_line",
                                 background=Constants.error_line,
+                                borderwidth=1,
+                                relief=tk.RAISED
                                 )
 
         self.text.tag_configure("failed_message",
@@ -231,12 +284,16 @@ class Steps(tk.Frame):
         self.text.tag_configure("passed_hover",
                                 background=Constants.light_green_color)
 
+        self.text.bind("<Leave>", self.remove_hover)
+
         self.text.tag_bind("passed", "<Motion>", self.step_hover)
         self.text.tag_bind("failed", "<Motion>", self.step_hover)
         self.text.tag_bind("failed_header", "<Motion>", self.failed_header_hover)
         self.text.tag_bind("passed_header", "<Motion>", self.passed_header_hover)
-        self.text.tag_bind("failed_message", "<Motion>", self.failed_message_hover)
+        self.text.tag_bind("failed_message", "<Enter>", self.remove_hover)
+        self.text.tag_bind("function", "<Enter>", self.remove_hover)
         self.text.tag_bind("failed", "<Double-1>", self._toggle_visibility)
+        self.text.tag_bind("failed_line", "<Double-1>", self.goto_editor_line)
 
         self.text.tag_lower("passed", "hidden")
         self.text.tag_lower("failed_message", "hidden")
@@ -248,11 +305,12 @@ class Steps(tk.Frame):
         self.text.tag_raise("selected", "failed_header")
         self.text.tag_raise("selected", "passed_header")
         self.text.tag_raise("failed_line", "function")
+
     #
     # WRITE FUNCTIONS
     #
 
-    def remove_hover(self):
+    def remove_hover(self, event=None):
         self.text.tag_remove("step_hover", "1.0", "end")
         self.text.tag_remove("failed_hover", "1.0", "end")
         self.text.tag_remove("passed_hover", "1.0", "end")
@@ -263,14 +321,14 @@ class Steps(tk.Frame):
 
         self.remove_hover()
         index = self.text.index("current")
-        self.text.tag_add("step_hover", str(index)+" linestart", str(index) + " lineend + 1 char")
+        self.text.tag_add("step_hover", str(index) + " linestart", str(index) + " lineend + 1 char")
 
     def failed_header_hover(self, event=None):
         """Change the color of the line where the mouse is"""
 
         self.remove_hover()
         index = self.text.index("current")
-        self.text.tag_add("failed_hover", str(index)+" linestart", str(index) + " lineend + 1 char")
+        self.text.tag_add("failed_hover", str(index) + " linestart", str(index) + " lineend + 1 char")
 
     def passed_header_hover(self, event=None):
         """Change the color of the line where the mouse is"""
@@ -298,7 +356,8 @@ class Steps(tk.Frame):
         self.test_name_index = self.text.index("end") + "-1 lines"
 
         # Add new test case info
-        self.text.image_create(self.test_name_index, image=Constants.image_run_test, pady=0)
+        self.text.image_create(str(self.test_name_index) + "+ 1 char", image=Constants.image_run_test, pady=0)
+        self.text.tag_add("header", str(self.test_name_index), str(self.test_name_index) + " lineend")
         self.text.configure(state="normal")
         self.text.insert("end", " " + self.test_name_label + "\n", "header")
         self.text.configure(state="disabled")
@@ -333,12 +392,13 @@ class Steps(tk.Frame):
         self.text.config(state="disabled")
         # if new line is not visible scroll down until it's visible
         self.text.see("end")
+        self.update_all()
         # Increase variables
         self.controller.total_steps += 1
         self.test_steps += 1
         self.test_steps_passed += 1
 
-    def step_fail(self, message, error_message=None, lines=None, error_line=None, time=None):
+    def step_fail(self, message, error_message=None, lines=None, error_line=None, time=None, error_line_module=None):
         """Add a failed executed step of a test case. it displays the time on completion of the step since
         the start of the test case, the description of the step and the error message of the step.
 
@@ -370,18 +430,27 @@ class Steps(tk.Frame):
         if lines is not None:
             self.text.insert("end", lines, "function")
         if error_line is not None:
-
             error_line_index = float(current_index) + float(error_line) - 1.0
             self.text.tag_add("failed_line",
-                              str(error_line_index)+" linestart",
+                              str(error_line_index) + " linestart",
                               str(error_line_index) + " lineend + 1 char")
+            ref_index = len(self.error_line_ref)
+            self.text.tag_add("error_ref" + str(ref_index),
+                              str(error_line_index) + " linestart",
+                              str(error_line_index) + " lineend + 1 char")
+            self.error_line_ref.append(("error_ref" + str(ref_index), error_line_module))
             self.text.tag_raise("failed_line", "failed_message")
             self.text.tag_raise("failed_line", "function")
-            self.text.insert("end ", " Error Message: \n" + error_message + "\n", "failed_message")
+        self.text.insert("end ", " Error Message: \n" + error_message + "\n", "failed_message")
 
         self.text.config(state="disabled")
         # if new line is not visible scroll down until it's visible
         self.text.see("end")
+        if self.error_button_state:
+            self.hide_error_message(True)
+
+        # Update function colors
+        self.update_all()
         # Increase variables
         self.controller.total_steps += 1
         self.test_steps_failed += 1
@@ -447,6 +516,8 @@ class Steps(tk.Frame):
 
     def update_all(self):
         self.colorize.update_color()
+        if self.controller.loaded_xml is False:
+            self.write_console()
 
     def clear_text(self):
         self.text.configure(state="normal")
@@ -472,6 +543,8 @@ class Steps(tk.Frame):
         self.text.tag_raise("selected", "failed_header")
         self.text.tag_raise("selected", "passed_header")
         self.text.tag_raise("selected", "step_hover")
+        self.text.tag_raise("selected", "function")
+        self.text.tag_raise("selected", "failed_line")
         # if none value is searched don't search
         if search_value == "":
             self.results_label.configure(text="")
@@ -494,7 +567,7 @@ class Steps(tk.Frame):
         # tag the coincidences of the search as selected
         for elem in self.search_indexes:
             try:
-                self.text.tag_add("selected", str(elem), str(elem)+" +"+str(len(search_value)) + "char")
+                self.text.tag_add("selected", str(elem), str(elem) + " +" + str(len(search_value)) + "char")
             except Exception:
                 pass
         # show the navigation bar if necessary
@@ -519,17 +592,17 @@ class Steps(tk.Frame):
 
     def search_next(self):
         """Scroll to the next searched coincidence of the text widget"""
-        self.search()
+        self.text.tag_raise("selected", "function")
         next_index = self.search_visited
         # check that the next index is inside the list
         if next_index < len(self.search_indexes):
+            print(self.search_indexes[next_index])
             self.text.see(self.search_indexes[next_index])
             self.search_visited += 1
             self.results_label.configure(text="%s of %s results" % (str(self.search_visited), len(self.search_indexes)))
 
     def search_previous(self):
         """Scroll to the previous searched coincidence of the text widget"""
-        self.search()
         previous_index = self.search_visited - 2
         # check that the previous_index is in range
         if previous_index >= 0:
@@ -561,28 +634,40 @@ class Steps(tk.Frame):
             self.collapsed = True
         self.search()
 
-    def hide_error_message(self):
-        if self.text.index("end") == "2.0":
-            return
+    def hide_error_message(self, override=False):
         self.text.tag_remove("hidden_failed_message", "1.0", "end")
         # If was collapsed then do nothing more
-        if self.error_button_state:
+        if self.error_button_state and override is False:
             self.error_button_state = False
-            pass
+            self.search()
+            self.colorize.update_color()
+            return
         # if wasn't collapsed then collapse all
         else:
-            index, end = self.text.tag_nextrange("failed", "1.0", "end")
-            # for the number of test case there are
+            try:
+                index, end = self.text.tag_nextrange("failed", "1.0", "end")
+            except:
+                self.error_button_state = True
+                self.search()
+                self.colorize.update_color()
+                return
+            # for the number of steps there are
             for i in range(self.controller.total_steps):
                 # collapse the given test case
-                self._toggle_visibility(position=str(index), tag="hidden_failed_message", current_tag="failed")
-                # get the start index of the next test case that is the end index of the current test case
-                start, end = self._get_block(str(index), tag="failed")
-                index = float(end)
+                try:
+                    index, end = self.text.tag_nextrange("failed", index, "end")
+                except:
+                    continue
+                else:
+                    self._toggle_visibility(position=str(index), tag="hidden_failed_message", current_tag="failed")
+                    # get the start index of the next test case that is the end index of the current test case
+                    start, end = self._get_block(str(index), tag="failed")
+                    index = end
             # Set the variable
-            self.error_button_state = True
+            if not override:
+                self.error_button_state = True
         self.search()
-        self.colorize.update_color()
+        self.update_all()
 
     def hide_passed(self):
         """Hide all the passed steps of the text widget if they are visible.
@@ -615,6 +700,7 @@ class Steps(tk.Frame):
             # hide the block
             self.text.tag_add(tag, block_start, block_end)
         self.search(self.search_bar.get())
+        self.colorize.update_color()
 
     def _get_block(self, index, tag="header"):
         """return indices after header, to next header or EOF
@@ -634,7 +720,9 @@ class Steps(tk.Frame):
 
             next_tags = [next_passed, next_failed, next_header, end]
             next_tags = [x for x in next_tags if x is not ()]
-            next_tags.sort(key=lambda x: x[0])
+            next_tags = natsorted(next_tags, key=lambda x: x[0])
+            if next_tags[0][0] == end[0]:
+                return start, next_tags[0][0] + "-1 char"
             return start, next_tags[0][0]
 
         next_header = self.text.tag_nextrange(tag, start)
@@ -644,3 +732,24 @@ class Steps(tk.Frame):
         else:
             end = self.text.index("end")
         return start, end
+
+    def goto_editor_line(self, event=None):
+
+        current_index = self.text.index("insert")
+        self.controller.show_frame("Editor")
+        editor = self.controller.get_frame("Editor")
+        searched_line = self.text.get(
+                          "insert" + " linestart",
+                          "insert" + " lineend ")
+
+        error_ref = [elem for elem in self.text.tag_names("insert") if "error_ref" in elem]
+        for element in self.error_line_ref:
+            if element[0] == error_ref[0]:
+                index = element[1] + ".0"
+                editor.text.tag_remove("selected", "1.0", "end")
+                lines = np.round(self.parent.winfo_height()/100, 0)
+                index_centered = float(index) + float(lines)
+                editor.text.see(index_centered)
+                editor.text.tag_add("selected", index + " linestart", index + " lineend + 1 char")
+                editor.text.tag_raise("selected", "function")
+        self.write_console()
