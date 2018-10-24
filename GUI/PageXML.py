@@ -19,7 +19,7 @@ class PageXML(tk.Frame):
         self.save_button = tk.Button(self,
                                      text="Save",
                                      image=Constants.image_save,
-                                     command=lambda: self.save_xml(),
+                                     command=self.save_xml(),
                                      bg=Constants.dark_color)
 
         self.save_button.pack(anchor="w")
@@ -109,8 +109,8 @@ class PageXML(tk.Frame):
                     # if the index is not empty store it
                     self.search_indexes.append(search_index)
 
-            except Exception:
-                pass
+            except Exception as e:
+                print(str(e))
             search_index = search_index + "+ 1 char"
 
         search_index = "1.0"

@@ -43,7 +43,7 @@ class Editor(tk.Frame):
                 f.write(code_to_write)
                 f.close()
                 self.save_changes_label.configure(text="changes saved")
-        except:
+        except Exception:
             self.save_changes_label.configure(text="error")
 
 
