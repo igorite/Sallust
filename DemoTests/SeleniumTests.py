@@ -39,10 +39,10 @@ class Amazon(Tc.TestCase):
         """Go to amazon main page"""
         self.driver.get("http://www.amazon.com")
 
-    def test_click_hamburguer_button(self):
-        """Click on hamburguer menu"""
-        hamburguer = self.driver.find_element_by_xpath('//*[@id="nav-hamburger-menu"]')
-        hamburguer.click()
+    def test_click_hamburger_button(self):
+        """Click on hamburger menu"""
+        hamburger = self.driver.find_element_by_xpath('//*[@id="nav-hamburger-menu"]')
+        hamburger.click()
 
     def test_click_electronics(self):
         """click on electronic section"""
@@ -61,8 +61,8 @@ class Amazon(Tc.TestCase):
         else:
             raise Exception
 
-    def test_close_browser(self):
-        """Close browser"""
+    def test_finish(self):
+        """Close the browser"""
         self.driver.quit()
 
 
@@ -80,6 +80,7 @@ class FailTest(Tc.TestCase):
         search_box = self.driver.find_element_by_id("lst-ib")
         search_box.send_keys("Hello")
         search_box.send_keys(Keys.RETURN)
+        print("hello")
 
     def test_check_page_title(self):
         """check page title contains 'Bye'"""
@@ -91,3 +92,32 @@ class FailTest(Tc.TestCase):
     def test_close_browser(self):
         """close browser"""
         self.driver.quit()
+
+
+class NumberOfResults(Tc.TestCase):
+
+    def __init__(self):
+        Tc.TestCase.__init__(self, "Number of results")
+        self.driver = webdriver.Chrome()
+
+    def test_google(self):
+        """Go to google"""
+        self.driver.get("http://www.google.es")
+
+    def hola(self):
+        return "hello worlddddddd"
+
+    def test_search(self,):
+        """search a word"""
+        search_box = self.driver.find_element_by_id("lst-ib")
+        search_box.send_keys(self.hola())
+        search_box.send_keys(Keys.RETURN)
+
+    def test_get_numbers(self):
+        """check the results are bigger than 2.000.000"""
+        results_element = self.driver.find_element_by_xpath('//*[@id="resultStats"]')
+        results = str(results_element.text)
+        end_index = results.find("r", 16)
+        number = results[16:end_index - 1].replace(".", "")
+        if int(number) <= 2000000000:
+            raise AssertionError
