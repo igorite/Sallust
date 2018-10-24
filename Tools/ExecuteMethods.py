@@ -33,7 +33,6 @@ def _get_class_methods(cls):
     methods.sort(key=lambda x: x[1])
     return methods
 
-
 def _add_step_xml(parent, step_order):
     """Add a step sub element with an attribute order to the given parent
     :type parent: (ElementTree)
@@ -172,7 +171,7 @@ class Process(threading.Thread):
         # execute the methods, evaluate its execution and store its result in a Queue
         self.new_execute_methods()
         # Send the signal that the task has finished
-        self.queue.put(["finish_thread", 0])
+        self.queue.put(["finish_thread", self.xml])
         # delete the object
         del self
 
@@ -224,7 +223,6 @@ class Process(threading.Thread):
             parent_xml = self._add_test_xml(cls_name)
             # call a function that returns a list of all test_methods of the class and it's line position
             class_methods = _get_class_methods(cls)
-
             # do a loop with one iteration per test method of the test case
             for method in class_methods:
 
@@ -244,8 +242,8 @@ class Process(threading.Thread):
                 try:
                     func()
                 # If fail get the exception info, send the info and save it to XML
-                except Exception as e:
 
+                except Exception as e:
                     # get the end time of the step
                     now = datetime.now() - self.time_start
                     elapsed_time = _parse_time(now)
@@ -271,12 +269,11 @@ class Process(threading.Thread):
                         function_error_line = float(error_line) - float(method[1])
                     except Exception:
                         pass
-
                     # for safety reasons delete the objects of the exception
                     del exc_type, exc_value, exc_traceback, trace
 
                     # Send all the data to the Queue
-                    self.queue.put(["fail", description, str(e), function_error_line, str(lines)])
+                    self.queue.put(["fail", description, str(e), function_error_line, str(lines), str(error_line)])
 
                     # Create a step element of XML
                     step = _add_step_xml(parent_xml, step_order)
@@ -311,9 +308,6 @@ class Process(threading.Thread):
                     step_order += 1
             # Send the signal to the Queue that the test case has finished
             self.queue.put(["end", cls.get_name()])
-
-        # Save the XML file
-        self._save_xml()
 
     def _add_test_xml(self, name):
         """Create a XML sub element of 'test_run' with the tag'testcase' and with the attribute 'name' which contains
