@@ -9,5 +9,5 @@ setup(
         author='Joan Albert Espinosa',
         author_email='joanalbert.espinosa@gmail.com',
         description='Sallust is a modern, open source testing support application. it helps track tests cases',
-        install_requires=['lxml', 'matplotlib', 'Pillow', 'numpy', 'natsort']
+        install_requires=['lxml', 'matplotlib', 'Pillow', 'numpy', 'natsort', 'fpdf']
 )
