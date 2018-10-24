@@ -7,6 +7,7 @@ import inspect
 from datetime import datetime
 from lxml import etree as et
 from PIL import Image, ImageTk
+from tkinter import filedialog
 # BUILT IN
 import tkinter as tk
 from tkinter import font as tk_font
@@ -39,6 +40,7 @@ class Window(tk.Tk):
         self.current_test_number = 0
         self.current_xml = None
         self.loaded_xml = False
+        self.data = None
         # BUTTONS
         self.button_steps = None
         self.button_graphics = None
@@ -53,7 +55,7 @@ class Window(tk.Tk):
         self._create_container()
         self.button_run.configure(state="normal")
         self.deiconify()
-        self.geometry("710x%d+%d+0" % (self.winfo_screenheight() * 0.94, (self.winfo_screenwidth() - 710) * 0.5))
+        self.geometry("810x%d+%d+0" % (self.winfo_screenheight() * 0.94, (self.winfo_screenwidth() - 710) * 0.5))
 
     def show_frame(self, page_name):
         """Show a frame for the given page name"""
@@ -84,6 +86,7 @@ class Window(tk.Tk):
         self.get_frame("PageXML").create_xml()
         self.get_frame("Graphics").update_graphics()
         self.get_frame("Steps").update_all()
+        self.get_frame("DataTable").set_data(self.data)
         self.get_frame("DataTable").update_all()
         self.get_frame("Editor").update_all()
 
@@ -236,15 +239,15 @@ class Window(tk.Tk):
                                          command=lambda: self.load_xml_button())
 
         self.button_PDF = tk.Button(menu,
-                                       text="PDF",
-                                       image=Constants.graphs_icon,
-                                       compound="left",
-                                       height=30,
-                                       font=Constants.text_font(),
-                                       fg="White",
-                                       bd=0,
-                                       bg=Constants.button_color,
-                                       command=lambda: self.create_pdf())
+                                    text="PDF",
+                                    image=Constants.graphs_icon,
+                                    compound="left",
+                                    height=30,
+                                    font=Constants.text_font(),
+                                    fg="White",
+                                    bd=0,
+                                    bg=Constants.button_color,
+                                    command=lambda: self.create_pdf())
         menu.grid_propagate(1)
 
         self.button_steps.grid(row=0, column=2, padx=2)
@@ -351,6 +354,8 @@ class Window(tk.Tk):
                 self.update_run_button()
             if msg[0] == "finish_thread":
                 xml = msg[1]
+                self.data = msg[2]
+                self.get_frame("DataTable").set_data(self.data)
                 self._add_console_xml(xml)
                 self._save_xml(xml)
                 Window.test_not_run = 0
@@ -422,13 +427,18 @@ class Window(tk.Tk):
         self.run_test()
 
     def create_pdf(self):
-        pdf = ResultsPDF.ResultsPDF()
-        pdf.alias_nb_pages()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.draw_report_data(self.run_module_path)
-        pdf.simple_table()
-        pdf.output("proba.pdf", "F")
+        filename = filedialog.asksaveasfile("w",
+                                            filetypes=[("PDF", ".pdf")],
+                                            defaultextension=".pdf")
+        if filename:
+            pdf = ResultsPDF.ResultsPDF()
+            pdf.alias_nb_pages()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.draw_resume_data(self.data)
+            pdf.data_table(self.data)
+            pdf.case_by_case(self.data)
+            pdf.output(str(filename.name), "F")
 
 
 if __name__ == "__main__":
