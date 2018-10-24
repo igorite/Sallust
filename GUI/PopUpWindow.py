@@ -89,7 +89,8 @@ class LoadModuleWindow(tk.Toplevel):
 
         self.entry = tk.Entry(self.main_frame,
                               bg=Constants.medium_color,
-                              width="33", font=Constants.title_font(),
+                              width="33",
+                              font=Constants.title_font(),
                               textvariable=self.path_string,
                               fg=Constants.text_color)
 
@@ -99,7 +100,7 @@ class LoadModuleWindow(tk.Toplevel):
                                     fg="red")
 
         self.import_button = tk.Button(self.main_frame,
-                                       text="load module",
+                                       text="Load and run module",
                                        bd=1,
                                        relief=tk.RIDGE,
                                        overrelief=tk.RIDGE,
