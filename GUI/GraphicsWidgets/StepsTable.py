@@ -86,14 +86,6 @@ class StepsTable(tk.Frame):
                                                              fg=Constants.text_color,
                                                              bg=Constants.ultra_light_color,
                                                              bd=10)
-
-        # Configure rows and columns
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(5, weight=1)
-        self.rowconfigure(2, weight=1)
-        self.rowconfigure(0, minsize=40)
-        self.rowconfigure(5, minsize=40)
-
         # Grid elements
         self.steps_table_column_steps.grid(row=self.index_row,
                                            column=self.index_column + 1,
@@ -142,6 +134,16 @@ class StepsTable(tk.Frame):
                                                        sticky="nwes",
                                                        pady=1,
                                                        padx=1)
+
+        self.configure_cells()
+
+    def configure_cells(self):
+        # Configure rows and columns
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(5, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(0, minsize=40)
+        self.rowconfigure(5, minsize=40)
 
     def update_table(self):
 
