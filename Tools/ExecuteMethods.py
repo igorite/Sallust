@@ -1,7 +1,7 @@
 import inspect
 import threading
 from datetime import datetime
-from lxml import etree as et
+from defusedxml.lxml import _etree as et
 import TestCase
 from Tools import TestData
 import sys
@@ -183,12 +183,12 @@ class Process(threading.Thread):
         and store them in a list named'_module_classes'
 
         :type module: (module) the module which will be run"""
-        for name, obj in inspect.getmembers(module):
+        for element in inspect.getmembers(module):
             # check the object is a class
+            obj = element[1]
             if inspect.isclass(obj):
                 # check the class is a subclass of 'TestCase'
                 if issubclass(obj, TestCase.TestCase):
-
                     position = inspect.findsource(obj)[1]
                     self._modules_classes.append([obj, position])
         self._modules_classes.sort(key=lambda x: x[1])
@@ -209,6 +209,7 @@ class Process(threading.Thread):
                 cls = self._modules_classes[i][0]()
             except Exception:
                 # If and error during loading the class of test case, then jump to the next test case
+                self.error_message()
                 continue
             # get the Start Time of the test case
             self.time_start = datetime.now()
@@ -271,7 +272,7 @@ class Process(threading.Thread):
                         # get the line number of the error within the function
                         function_error_line = float(error_line) - float(method[1])
                     except Exception:
-                        pass
+                        self.error_message()
                     # for safety reasons delete the objects of the exception
                     del exc_type, exc_value, exc_traceback, trace
 
@@ -355,3 +356,6 @@ class Process(threading.Thread):
     def get_run_methods(self):
         """:return: the 'run_methods'"""
         return self._run_methods
+
+    def error_message(self):
+        pass
