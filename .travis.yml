@@ -6,5 +6,4 @@ python:
 install:
   - pip install -r requirements.txt
 script:
-  - python run.pyw
-  - python GUI/window.pyw
+  - python sallust/__main__.py
