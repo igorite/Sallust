@@ -69,7 +69,7 @@ class Steps(tk.Frame):
         self.passed_button = tk.Checkbutton(self.option_bar,
                                             image=Constants.image_hide_ok,
                                             selectimage=Constants.image_hide_ok_off,
-                                            command=lambda: self.hide_passed(),
+                                            command=self.hide_passed,
                                             font=Constants.text_font(),
                                             indicatoron=False,
                                             bg=Constants.dark_color,
@@ -79,7 +79,7 @@ class Steps(tk.Frame):
         self.error_button = tk.Checkbutton(self.option_bar,
                                            image=Constants.image_hide_error,
                                            selectimage=Constants.image_hide_error_off,
-                                           command=lambda: self.hide_error_message(),
+                                           command=self.hide_error_message,
                                            font=Constants.text_font(),
                                            indicatoron=False,
                                            bg=Constants.dark_color,
@@ -89,7 +89,7 @@ class Steps(tk.Frame):
         self.collapse_button = tk.Checkbutton(self.option_bar,
                                               image=Constants.image_collapse,
                                               selectimage=Constants.image_collapse_off,
-                                              command=lambda: self.collapse_all(),
+                                              command=self.collapse_all,
                                               font=Constants.text_font(),
                                               indicatoron=False,
                                               bg=Constants.dark_color,
@@ -123,7 +123,7 @@ class Steps(tk.Frame):
                                             overrelief=tk.RIDGE,
                                             fg="White",
                                             bg=Constants.light_color,
-                                            command=lambda: self.search_next())
+                                            command=self.search_next)
 
         self.search_previous_button = tk.Button(self.search_bar_frame,
                                                 text="<",
@@ -133,7 +133,7 @@ class Steps(tk.Frame):
                                                 overrelief=tk.RIDGE,
                                                 fg="White",
                                                 bg=Constants.light_color,
-                                                command=lambda: self.search_previous())
+                                                command=self.search_previous)
 
         self.results_label = tk.Label(self.search_bar_frame,
                                       text="",
@@ -619,12 +619,11 @@ class Steps(tk.Frame):
         # If was collapsed then do nothing more
         if self.collapsed:
             self.collapsed = False
-            pass
         # if wasn't collapsed then collapse all
         else:
             index = 1.0
             # for the number of test case there are
-            for i in range(len(self.controller.data_tests)):
+            for _ in self.controller.data_tests:
                 # collapse the given test case
                 self._toggle_visibility(position=str(index))
                 # get the start index of the next test case that is the end index of the current test case

@@ -19,7 +19,7 @@ class PageXML(tk.Frame):
         self.save_button = tk.Button(self,
                                      text="Save",
                                      image=Constants.image_save,
-                                     command=self.save_xml(),
+                                     command=self.save_xml,
                                      bg=Constants.dark_color)
 
         self.save_button.pack(anchor="w")

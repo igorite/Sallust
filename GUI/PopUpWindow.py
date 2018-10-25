@@ -51,7 +51,7 @@ class LoadWindow(tk.Toplevel):
                                bg=Constants.dark_color,
                                fg=Constants.text_color,
                                bd=0,
-                               command=lambda: self.destroy())
+                               command=self.destroy)
 
         self.label = tk.Label(self.top_bar,
                               text="",
@@ -80,7 +80,7 @@ class LoadWindow(tk.Toplevel):
 
         # Create the main frame elements
         self.load_button = tk.Button(self.main_frame,
-                                     command=lambda: self.file_manager(),
+                                     command=self.file_manager,
                                      text="file",
                                      bd=1,
                                      relief=tk.RIDGE,
@@ -109,7 +109,7 @@ class LoadWindow(tk.Toplevel):
                                        font=Constants.text_font(),
                                        bg=Constants.button_color,
                                        fg=Constants.text_color,
-                                       command=lambda: self.load())
+                                       command=self.load)
 
         # Grid elements
         self.entry.grid(row=0, column=0)

@@ -180,7 +180,7 @@ class Window(tk.Tk):
                                          fg="White",
                                          bd=0,
                                          bg=Constants.button_color,
-                                         command=lambda: self.load_graphics())
+                                         command=self.load_graphics)
 
         self.button_editor = tk.Button(menu,
                                        text="Editor",
@@ -191,7 +191,7 @@ class Window(tk.Tk):
                                        fg="White",
                                        bd=0,
                                        bg=Constants.button_color,
-                                       command=lambda: self.load_editor())
+                                       command=self.load_editor)
 
         self.button_table = tk.Button(menu,
                                       text="Table",
@@ -202,7 +202,7 @@ class Window(tk.Tk):
                                       fg="White",
                                       bd=0,
                                       bg=Constants.button_color,
-                                      command=lambda: self.load_table())
+                                      command=self.load_table)
 
         self.button_xml = tk.Button(menu,
                                     text="XML",
@@ -213,7 +213,7 @@ class Window(tk.Tk):
                                     fg="White",
                                     bd=0,
                                     bg=Constants.button_color,
-                                    command=lambda: self.load_xml())
+                                    command=self.load_xml)
 
         self.button_run = tk.Button(menu,
                                     state="disabled",
@@ -225,7 +225,7 @@ class Window(tk.Tk):
                                     fg="White",
                                     bd=0,
                                     bg=Constants.green_color,
-                                    command=lambda: self.run_test_button())
+                                    command=self.run_test_button)
 
         self.button_load_xml = tk.Button(menu,
                                          text="Load",
@@ -236,7 +236,7 @@ class Window(tk.Tk):
                                          fg="White",
                                          bd=0,
                                          bg=Constants.button_color,
-                                         command=lambda: self.load_xml_button())
+                                         command=self.load_xml_button)
 
         self.button_PDF = tk.Button(menu,
                                     text="PDF",
@@ -247,7 +247,7 @@ class Window(tk.Tk):
                                     fg="White",
                                     bd=0,
                                     bg=Constants.button_color,
-                                    command=lambda: self.create_pdf())
+                                    command=self.create_pdf)
         menu.grid_propagate(1)
 
         self.button_steps.grid(row=0, column=2, padx=2)
