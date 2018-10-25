@@ -4,11 +4,10 @@ from Tools.LoadXML import LoadXML
 import Constants
 
 
-class LoadWindow(tk.Toplevel):
-    """Creates a window to import test case modules"""
+class PopUpWindow(tk.Toplevel):
 
     def __init__(self, window):
-        super().__init__(window)
+        tk.Toplevel.__init__(self, window)
         # Assign the given arguments
         self.controller = window
 
@@ -24,20 +23,11 @@ class LoadWindow(tk.Toplevel):
         self.main_frame = None
         self.close = None
         self.label = None
-        self.load_button = None
-        self.filename = None
-        self.error_label = None
-        self.entry = None
-        self.import_button = None
         self._offset_x = 0
         self._offset_y = 0
-        self.path_string = ""
-        self.filetypes = ("All files", "*.*")
 
         # Init methods of the window
         self.create_top_bar()
-        self.create_main_frame()
-        self.set_title("Load")
 
     def create_top_bar(self):
         """ Creates the top bar of the window, which includes the title and the close button"""
@@ -69,6 +59,13 @@ class LoadWindow(tk.Toplevel):
         self.label.bind("<B1 Motion>", self._move_window)
         self.label.bind("<Button 1>", self.click_win)
 
+    def set_title(self, title):
+        """Set the title of the top bar of the window
+
+        :type title: (str) the new title of the window
+        """
+        self.label.configure(text=title)
+
     def create_main_frame(self):
         """" Create the main frame of the window and it's elements """
         # Create the main frame
@@ -78,6 +75,37 @@ class LoadWindow(tk.Toplevel):
 
         self.main_frame.pack(expand=1, fill="both", padx=3, pady=3)
 
+    def _move_window(self, event=None):
+            """ Move the window to the position of the mouse"""
+            x = self.winfo_pointerx() - self._offset_x
+            y = self.winfo_pointery() - self._offset_y
+            self.geometry('+{x}+{y}'.format(x=x, y=y))
+
+    def click_win(self, event):
+            """set the offset of the mouse when moving the window"""
+            self._offset_x = event.x
+            self._offset_y = event.y
+
+
+class LoadWindow(PopUpWindow):
+    """Creates a window to import test case modules"""
+
+    def __init__(self, window):
+        super().__init__(window)
+
+        self.load_button = None
+        self.filename = None
+        self.error_label = None
+        self.entry = None
+        self.import_button = None
+        self._offset_x = 0
+        self._offset_y = 0
+        self.path_string = ""
+        self.filetypes = ("All files", "*.*")
+        self.create_main_frame()
+
+    def create_main_frame(self):
+        super().create_main_frame()
         # Create the main frame elements
         self.load_button = tk.Button(self.main_frame,
                                      command=self.file_manager,
@@ -138,13 +166,6 @@ class LoadWindow(tk.Toplevel):
     def load(self):
         raise NotImplementedError
 
-    def set_title(self, title):
-        """Set the title of the top bar of the window
-
-        :type title: (str) the new title of the window
-        """
-        self.label.configure(text=title)
-
     def set_file_path(self, path):
         """ Set the entry field to the given path
 
@@ -158,21 +179,6 @@ class LoadWindow(tk.Toplevel):
         # Scroll to the end of the entry
         self.entry.xview("end")
 
-    #
-    # Motion methods
-    #
-
-    def _move_window(self, event=None):
-        """ Move the window to the position of the mouse"""
-        x = self.winfo_pointerx() - self._offset_x
-        y = self.winfo_pointery() - self._offset_y
-        self.geometry('+{x}+{y}'.format(x=x, y=y))
-
-    def click_win(self, event):
-        """set the offset of the mouse when moving the window"""
-        self._offset_x = event.x
-        self._offset_y = event.y
-
 
 class LoadModuleWindow(LoadWindow):
 
@@ -182,6 +188,7 @@ class LoadModuleWindow(LoadWindow):
         self.set_filetypes((("Python files", "*.py"),
                             ("Python files", "*.pyw"),
                             ("All files", "*.*")))
+
         self.set_title("Load test module")
         self.set_load_button_text("Load and run module")
 
@@ -195,7 +202,7 @@ class LoadModuleWindow(LoadWindow):
             self.controller.set_module(self.path_string)
             # close the window
             self.destroy()
-        except Exception as e:
+        except Exception:
             # Show a error message
             self.error_label.configure(text="Error while loading module. Try again")
 
@@ -227,3 +234,40 @@ class PopUpLoadXML(LoadWindow):
             self.controller.update_all()
             # Close the window
             self.destroy()
+
+
+class PopUpError(PopUpWindow):
+
+    def __init__(self, window, error_message):
+        PopUpWindow.__init__(self, window)
+        self.error_label = None
+        self.ok_button = None
+        self.error_message = error_message
+        self.create_main_frame()
+        self.set_title("Error")
+
+    def create_main_frame(self):
+        super().create_main_frame()
+
+        self.error_label = tk.Text(self.main_frame,
+                                   bg=Constants.light_color,
+                                   fg=Constants.text_color,
+                                   font=Constants.text_font(),
+                                   bd=0,
+                                   width=36,
+                                   height=2)
+
+        self.ok_button = tk.Button(self.main_frame,
+                                   text="Ok",
+                                   bd=1,
+                                   relief=tk.RIDGE,
+                                   overrelief=tk.RIDGE,
+                                   font=Constants.text_font(),
+                                   bg=Constants.button_color,
+                                   fg=Constants.text_color,)
+
+        self.error_label.tag_configure("center", justify="center")
+        self.error_label.insert("1.0", self.error_message)
+        self.error_label.tag_add("center", "1.0", "end")
+        self.ok_button.grid(row=1, column=0,)
+        self.error_label.grid(row=0, column=0,)
