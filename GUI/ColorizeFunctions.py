@@ -71,10 +71,10 @@ class ColorizePythonFunctions:
 
         # do a loop while search index has not reach the end
         while search_index != "+ 1 char":
-            try:
-                # search the value starting at 'search index' and returns the index if there is a coincidence
-                search_index = self.text.search(code, search_index, "end", nocase=nocase)
-                # get all tags that index have
+            # search the value starting at 'search index' and returns the index if there is a coincidence
+            search_index = self.text.search(code, search_index, "end", nocase=nocase)
+            # get all tags that index have
+            if search_index is not "":
                 tag_names = self.text.tag_names(search_index)
                 # assign the color tag if the coincidence have the 'function' tag
                 if "function" in tag_names:
@@ -82,8 +82,7 @@ class ColorizePythonFunctions:
                     code_length = "+" + str(len(code)) + " char"
                     # assign the color tag to the code
                     self.text.tag_add(tag_name, search_index, search_index + code_length)
-            except Exception:
-                pass
+
 
             # set the search_index to the current coincidence plus 1 character
             search_index = search_index + "+ 1 char"
