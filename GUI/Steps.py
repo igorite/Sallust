@@ -309,6 +309,16 @@ class Steps(tk.Frame):
     #
     # WRITE FUNCTIONS
     #
+    def check_time(self, time):
+        if time is None:
+            # Calculate the elapsed time since the start of the test case
+            now = datetime.now() - self.time_start
+            time = _parse_time(now)
+            return time
+        else:
+            # Format the given time
+            time = " (" + time + ") "
+            return time
 
     def remove_hover(self, event=None):
         self.text.tag_remove("step_hover", "1.0", "end")
@@ -376,13 +386,7 @@ class Steps(tk.Frame):
         :type time: (str) the elapsed time since the start of the test case until the execution of the step
         """
         # Check if variable time is assigned else assign it
-        if time is None:
-            # Calculate the elapsed time since the start of the test case
-            now = datetime.now() - self.time_start
-            time = _parse_time(now)
-        else:
-            # Format the given time
-            time = " (" + time + ") "
+        time = self.check_time(time)
         # add step info
         self.text.config(state="normal")
         image_index = self.text.index("end") + "-1 lines"
@@ -410,12 +414,7 @@ class Steps(tk.Frame):
         """
         # set the test case status as failed
         self.test_status = False
-        # Check if variable time is assigned else assign it
-        if time is None:
-            now = datetime.now() - self.time_start
-            time = _parse_time(now)
-        else:
-            time = " (" + time + ") "
+        time = self.check_time(time)
         # add step info
         self.text.config(state="normal")
         image_index = self.text.index("end") + "-1 lines"
@@ -554,14 +553,12 @@ class Steps(tk.Frame):
             return True
         # while the search hasn't get to the end of the text, search for the value and store the coincidences index
         while search_index != "+ 1 char":
-            try:
-                # search the value starting at 'search index' and returns the index if there is a coincidence
-                search_index = self.text.search(search_value, search_index, "end", nocase=1)
-                if search_index != "":
-                    # if the index is not empty store it
-                    self.search_indexes.append(search_index)
-            except Exception:
-                pass
+            # search the value starting at 'search index' and returns the index if there is a coincidence
+            search_index = self.text.search(search_value, search_index, "end", nocase=1)
+            if search_index != "":
+                # if the index is not empty store it
+                self.search_indexes.append(search_index)
+
             # set the search_index to the current coincidence plus 1 character
             search_index = search_index + "+ 1 char"
         # tag the coincidences of the search as selected
@@ -596,7 +593,6 @@ class Steps(tk.Frame):
         next_index = self.search_visited
         # check that the next index is inside the list
         if next_index < len(self.search_indexes):
-            print(self.search_indexes[next_index])
             self.text.see(self.search_indexes[next_index])
             self.search_visited += 1
             self.results_label.configure(text="%s of %s results" % (str(self.search_visited), len(self.search_indexes)))
@@ -627,8 +623,8 @@ class Steps(tk.Frame):
                 # collapse the given test case
                 self._toggle_visibility(position=str(index))
                 # get the start index of the next test case that is the end index of the current test case
-                start, end = self._get_block(str(index))
-                index = float(end)
+                next_range = self._get_block(str(index))
+                index = float(next_range[1])
             # Set the variable
             self.collapsed = True
         self.search()
@@ -645,23 +641,24 @@ class Steps(tk.Frame):
         else:
             try:
                 index, end = self.text.tag_nextrange("failed", "1.0", "end")
-            except:
+            except Exception:
                 self.error_button_state = True
                 self.search()
                 self.colorize.update_color()
                 return
             # for the number of steps there are
-            for i in range(self.controller.total_steps):
+            for _ in range(self.controller.total_steps):
                 # collapse the given test case
-                try:
-                    index, end = self.text.tag_nextrange("failed", index, "end")
-                except:
-                    continue
-                else:
-                    self._toggle_visibility(position=str(index), tag="hidden_failed_message", current_tag="failed")
+
+                next_range = self.text.tag_nextrange("failed", index, "end")
+
+                if next_range is not ():
+                    self._toggle_visibility(position=str(next_range[0]),
+                                            tag="hidden_failed_message",
+                                            current_tag="failed")
                     # get the start index of the next test case that is the end index of the current test case
-                    start, end = self._get_block(str(index), tag="failed")
-                    index = end
+                    end = self._get_block(str(next_range[0]), tag="failed")
+                    index = end[1]
             # Set the variable
             if not override:
                 self.error_button_state = True
@@ -734,13 +731,8 @@ class Steps(tk.Frame):
 
     def goto_editor_line(self, event=None):
 
-        current_index = self.text.index("insert")
         self.controller.show_frame("Editor")
         editor = self.controller.get_frame("Editor")
-        searched_line = self.text.get(
-                          "insert" + " linestart",
-                          "insert" + " lineend ")
-
         error_ref = [elem for elem in self.text.tag_names("insert") if "error_ref" in elem]
         for element in self.error_line_ref:
             if element[0] == error_ref[0]:
