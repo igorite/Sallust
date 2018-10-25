@@ -1,4 +1,4 @@
-from lxml import etree as et
+from defusedxml.lxml import _etree as et
 from Tools import TestData
 
 
@@ -20,14 +20,14 @@ class LoadXML:
             test_case = root[i]
             self.steps.add_test_case(test_case.get("name"))
             test_case_data = self.controller.data.add_test_case(test_case.get("name"), i)
-            for j in range(len(test_case)):
-                elem = test_case[j]
+            for index, value in enumerate(test_case):
+                elem = value
                 status = elem[0]
                 time = elem[1]
                 description = elem[2]
                 if status.text == "passed":
                     self.steps.step_pass(description.text, time.text)
-                    test_case_data.add_step(j+1, status="pass", description=description.text, time=time.text)
+                    test_case_data.add_step(index+1, status="pass", description=description.text, time=time.text)
                 if status.text == "failed":
                     error_element = elem[3]
                     func = error_element[0]
@@ -38,7 +38,7 @@ class LoadXML:
                                          lines=str(func.text),
                                          error_line=str(func_error_line.text),
                                          time=time.text)
-                    test_case_data.add_step(order=j+1,
+                    test_case_data.add_step(order=index+1,
                                             status="fail",
                                             description=description.text,
                                             method=func.text,
