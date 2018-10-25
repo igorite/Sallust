@@ -1,8 +1,9 @@
 import inspect
 import threading
 from datetime import datetime
-from lxml import etree as et
+from defusedxml.lxml import _etree as et
 import TestCase
+from Tools import TestData
 import sys
 import traceback
 
@@ -159,6 +160,7 @@ class Process(threading.Thread):
         self._modules_classes = []
         self.cls = None
         self.time_start = datetime.now()
+        self.data = TestData.TestRunData()
         # create a XML element that will serve as a root
         self.xml = et.Element("test_run")
 
@@ -172,7 +174,7 @@ class Process(threading.Thread):
         # execute the methods, evaluate its execution and store its result in a Queue
         self.new_execute_methods()
         # Send the signal that the task has finished
-        self.queue.put(["finish_thread", 0])
+        self.queue.put(["finish_thread", self.xml, self.data])
         # delete the object
         del self
 
@@ -181,12 +183,12 @@ class Process(threading.Thread):
         and store them in a list named'_module_classes'
 
         :type module: (module) the module which will be run"""
-        for name, obj in inspect.getmembers(module):
+        for element in inspect.getmembers(module):
             # check the object is a class
+            obj = element[1]
             if inspect.isclass(obj):
                 # check the class is a subclass of 'TestCase'
                 if issubclass(obj, TestCase.TestCase):
-
                     position = inspect.findsource(obj)[1]
                     self._modules_classes.append([obj, position])
         self._modules_classes.sort(key=lambda x: x[1])
@@ -200,7 +202,6 @@ class Process(threading.Thread):
         n_test_case = len(self._modules_classes)
         # Send the number of test case to the Queue
         self.queue.put(["n_test_case", n_test_case])
-
         # do a loop with one iteration per test case
         for i in range(n_test_case):
             # initialize the class of the test case
@@ -208,6 +209,7 @@ class Process(threading.Thread):
                 cls = self._modules_classes[i][0]()
             except Exception:
                 # If and error during loading the class of test case, then jump to the next test case
+                self.error_message()
                 continue
             # get the Start Time of the test case
             self.time_start = datetime.now()
@@ -225,9 +227,9 @@ class Process(threading.Thread):
             # call a function that returns a list of all test_methods of the class and it's line position
             class_methods = _get_class_methods(cls)
 
+            test_case_data = self.data.add_test_case(cls_name, i)
             # do a loop with one iteration per test method of the test case
             for method in class_methods:
-
                 # get the reference to the method
                 func = cls.__getattribute__(method[0])
                 # get the __doc__ description of the method
@@ -244,8 +246,8 @@ class Process(threading.Thread):
                 try:
                     func()
                 # If fail get the exception info, send the info and save it to XML
-                except Exception as e:
 
+                except Exception as e:
                     # get the end time of the step
                     now = datetime.now() - self.time_start
                     elapsed_time = _parse_time(now)
@@ -270,13 +272,21 @@ class Process(threading.Thread):
                         # get the line number of the error within the function
                         function_error_line = float(error_line) - float(method[1])
                     except Exception:
-                        pass
-
+                        self.error_message()
                     # for safety reasons delete the objects of the exception
                     del exc_type, exc_value, exc_traceback, trace
 
                     # Send all the data to the Queue
-                    self.queue.put(["fail", description, str(e), function_error_line, str(lines)])
+                    test_case_data.add_step(step_order,
+                                            description=description,
+                                            status="fail",
+                                            time=elapsed_time,
+                                            method=lines,
+                                            error_message=str(e),
+                                            error_line=str(function_error_line),
+                                            error_line_module=str(error_line),
+                                            )
+                    self.queue.put(["fail", description, str(e), function_error_line, str(lines), str(error_line)])
 
                     # Create a step element of XML
                     step = _add_step_xml(parent_xml, step_order)
@@ -299,6 +309,7 @@ class Process(threading.Thread):
                     now = datetime.now() - self.time_start
                     elapsed_time = _parse_time(now)
                     # Send the info to the Queue
+                    test_case_data.add_step(step_order, description=description, status="pass",time=elapsed_time,method=lines)
                     self.queue.put(["pass", description])
                     # Create a step element of XML
                     step = _add_step_xml(parent_xml, step_order)
@@ -311,9 +322,6 @@ class Process(threading.Thread):
                     step_order += 1
             # Send the signal to the Queue that the test case has finished
             self.queue.put(["end", cls.get_name()])
-
-        # Save the XML file
-        self._save_xml()
 
     def _add_test_xml(self, name):
         """Create a XML sub element of 'test_run' with the tag'testcase' and with the attribute 'name' which contains
@@ -348,3 +356,6 @@ class Process(threading.Thread):
     def get_run_methods(self):
         """:return: the 'run_methods'"""
         return self._run_methods
+
+    def error_message(self):
+        pass
