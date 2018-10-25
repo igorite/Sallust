@@ -1,7 +1,5 @@
 from fpdf import FPDF
 
-from datetime import datetime
-
 
 class ResultsPDF(FPDF):
 
@@ -64,45 +62,21 @@ class ResultsPDF(FPDF):
 
         self.ln(5)
         self.set_font("Arial", size=9)
+        self.image("temp/pie.png", 98, 30, 90, 80)
         self.draw_resume_data_row("Total test case", data.get_number_of_test_case())
         self.draw_resume_data_row("Passed test case", data.get_passed_test_case())
-        self.draw_resume_data_row("Failed test case",data.get_failed_test_case())
+        self.draw_resume_data_row("Failed test case", data.get_failed_test_case())
+        self.draw_resume_data_row("Total steps", data.get_total_steps())
+        self.draw_resume_data_row("Passed steps", data.get_total_passed_steps())
+        self.draw_resume_data_row("Failed steps", data.get_total_failed_steps())
         self.ln(30)
 
-    def draw_report_data(self, path, data):
-        self.set_font("Arial", size=10)
-        self.set_left_margin(30)
-        self.set_text_color(0)
-
-        self.cell(0, 0, "Module: " + str(path))
-        self.ln(10)
-        self.set_font("Arial", size=10)
-        self.cell(0, 0, "Date: " + str(datetime.now())[:-15])
-        self.ln(10)
-        self.cell(0, 0, "Time: " + str(datetime.now())[11:-7])
-        self.ln(10)
-        self.cell(0, 0, "Total test case:")
-        self.cell(0, 0, str(data.get_number_of_test_case()))
-        self.ln(10)
-        self.cell(0, 0, "Passed test case:" + str(data.get_passed_test_case()))
-        self.ln(10)
-        self.cell(0, 0, "Failed test case:" + str(data.get_failed_test_case()))
-        self.ln(10)
-        self.cell(0, 0, "Total steps:" + str(data.get_total_steps()))
-        self.ln(10)
-        self.cell(0, 0, "Passed steps:" + str(data.get_total_passed_steps()))
-        self.ln(10)
-        self.cell(0, 0, "Failed steps:" + str(data.get_total_failed_steps()))
-        self.ln(10)
+    def data_table(self, data):
         self.set_font("Arial", size=13)
         self.set_left_margin(80)
-        self.image("temp/pie.png", 78, 38, 110, 110)
-        self.ln(20)
         self.cell(0, 0, "TABLE OF TEST CASE")
-        self.set_left_margin(0)
-        self.ln(10)
-
-    def data_table(self, data):
+        self.set_left_margin(30)
+        self.ln(8)
         self.set_font("Arial", size=6)
         self.set_draw_color(212, 212, 212)
         self.set_fill_color(92, 116, 144)
@@ -122,7 +96,8 @@ class ResultsPDF(FPDF):
                   txt="Total Steps", border=1, fill=1, align='C')
         self.cell(col_width, (row_height * spacing),
                   txt="% Steps", border=1, fill=1, align='C')
-        self.ln(5)
+        self.ln(6)
+        self.set_left_margin(30)
         for i in range(data.get_number_of_test_case()):
             test_d = data.get_test_case_by_order(i)
             data_list = [test_d.get_name(),
@@ -130,15 +105,15 @@ class ResultsPDF(FPDF):
                          test_d.get_failed_steps(),
                          test_d.get_total_steps(),
                          str(test_d.get_passed_percentage(1)) + "%"]
-            for j in range(len(data_list)):
+            for element in data_list:
                 if test_d.get_status() == "pass":
                     self.set_fill_color(34, 134, 58)
                 else:
                     self.set_fill_color(146, 46, 46)
                 self.cell(col_width, (row_height * spacing),
-                          txt=str(data_list[j]), border=1, fill=1, align='C')
+                          txt=str(element), border=1, fill=1, align='C')
 
-            self.ln(5)
+            self.ln(6)
         self.ln(10)
 
     def check_end(self, distance=250):
@@ -186,7 +161,6 @@ class ResultsPDF(FPDF):
                     x = self.get_x()
                     y = self.get_y()
                     title_string = "(Step " + str(step.get_order()) + "). " + step.get_description()
-                    s_length = self.get_string_width(title_string)
                     self.line(x+50, y + 2,  150, y + 2)
                     self.check_end()
                     self.set_text_color(0, 0, 0)
