@@ -94,7 +94,6 @@ class Graphics(tk.Frame):
         self.draw()
         self.table_frame.update_table()
         self.steps_frame.update_table()
-        self.figure_pie.savefig("temp/pie.png")
 
     def draw(self):
 
@@ -126,7 +125,7 @@ class Graphics(tk.Frame):
 
         # Create the Pie Plot
         self.plot = self.figure_pie.add_subplot(111)
-        self.plot.set_title("Results of the test run")
+        self.plot.set_title("Results of the TestCase")
         sizes = [self.controller.test_passed, self.controller.test_failed]
         self.plot.pie(sizes,
                       labels=self.labels,
