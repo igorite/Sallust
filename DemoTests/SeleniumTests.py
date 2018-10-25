@@ -104,13 +104,14 @@ class NumberOfResults(Tc.TestCase):
         """Go to google"""
         self.driver.get("http://www.google.es")
 
-    def hola(self):
+    @staticmethod
+    def hola():
         return "hello worlddddddd"
 
     def test_search(self,):
         """search a word"""
         search_box = self.driver.find_element_by_id("lst-ib")
-        search_box.send_keys(self.hola())
+        search_box.send_keys(self.hola)
         search_box.send_keys(Keys.RETURN)
 
     def test_get_numbers(self):
