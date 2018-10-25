@@ -109,22 +109,24 @@ class PageXML(tk.Frame):
                     # if the index is not empty store it
                     self.search_indexes.append(search_index)
 
-            except Exception as e:
-                print(str(e))
+            except Exception:
+                self.error_message()
             search_index = search_index + "+ 1 char"
 
         search_index = "1.0"
         while search_index != "+ 1 char":
-            try:
-                # search the value starting at 'search index' and returns the index if there is a coincidence
-                search_index = self.text.search(">", search_index, "end", nocase=1)
+            # search the value starting at 'search index' and returns the index if there is a coincidence
+            search_index = self.text.search(">", search_index, "end", nocase=1)
+            if search_index is not "":
                 search_end = self.text.search("<", search_index, "end", nocase=1)
                 self.text.tag_add("code_character", search_index)
-                self.text.tag_add("string_character", search_index+"+ 1 char", search_end)
-            except Exception:
-                pass
+                if search_end is not "":
+                    self.text.tag_add("string_character", search_index+"+ 1 char", search_end)
 
             # set the search_index to the current coincidence plus 1 character
             search_index = search_index + "+ 1 char"
         # tag the coincidences of the search as selected
         search_index = "1.0"
+
+    def error_message(self):
+        pass
